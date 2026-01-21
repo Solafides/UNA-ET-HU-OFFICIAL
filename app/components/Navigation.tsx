@@ -9,16 +9,22 @@ import toast from 'react-hot-toast';
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isTeamsDropdownOpen, setIsTeamsDropdownOpen] = useState(false); // For Desktop Teams Dropdown
+  const [isMobileTeamsOpen, setIsMobileTeamsOpen] = useState(false); // For Mobile Teams Submenu
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const teamsDropdownRef = useRef<HTMLDivElement>(null);
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (teamsDropdownRef.current && !teamsDropdownRef.current.contains(event.target as Node)) {
+        setIsTeamsDropdownOpen(false);
       }
     };
 
@@ -48,6 +54,15 @@ export default function Navigation() {
 
   const canGoBack = pathname !== '/';
 
+  const teamLinks = [
+    { name: 'Our Teams Overview', href: '/teams', icon: 'groups' },
+    { name: 'MUN', href: '/mun', icon: 'public' },
+    { name: 'SDGs', href: '/sdg', icon: 'eco' }, // New SDG Page
+    { name: 'Innovation', href: '/innovation', icon: 'lightbulb' }, // Placeholder
+    { name: 'Project Team', href: '/projects', icon: 'engineering' }, // Placeholder
+    { name: 'Debate Team', href: '/debate', icon: 'record_voice_over' }, // Placeholder
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#212935]/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,6 +87,7 @@ export default function Navigation() {
             </Link>
           </div>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
               href="/"
@@ -85,18 +101,36 @@ export default function Navigation() {
             >
               About Us
             </Link>
-            <Link
-              href="/teams"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-            >
-              Our Teams
-            </Link>
-            <Link
-              href="/mun"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-            >
-              MUN
-            </Link>
+
+            {/* Teams Dropdown */}
+            <div className="relative" ref={teamsDropdownRef}>
+              <button
+                onClick={() => setIsTeamsDropdownOpen(!isTeamsDropdownOpen)}
+                className="flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors focus:outline-none"
+              >
+                Teams
+                <span className={`material-symbols-outlined text-lg transition-transform duration-200 ${isTeamsDropdownOpen ? 'rotate-180' : ''}`}>
+                  expand_more
+                </span>
+              </button>
+
+              {isTeamsDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-[#1a1d23] border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {teamLinks.map((link) => (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      onClick={() => setIsTeamsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg text-primary">{link.icon}</span>
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link
               href="/blog"
               className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
@@ -104,7 +138,7 @@ export default function Navigation() {
               Blog
             </Link>
             <Link
-              href="/gallery"
+              href="/gallery" // New Gallery Page
               className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
             >
               Gallery
@@ -255,7 +289,7 @@ export default function Navigation() {
 
       {/* Mobile menu panel */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#212935]">
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#212935] max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-4 pt-4 pb-6 space-y-3">
             <nav className="flex flex-col space-y-2">
               <Link
@@ -272,20 +306,35 @@ export default function Navigation() {
               >
                 About Us
               </Link>
-              <Link
-                href="/teams"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-sm font-medium text-slate-700 dark:text-slate-200 py-1"
-              >
-                Our Teams
-              </Link>
-              <Link
-                href="/mun"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-sm font-medium text-slate-700 dark:text-slate-200 py-1"
-              >
-                MUN
-              </Link>
+
+              {/* Mobile Teams Submenu */}
+              <div>
+                <button
+                  onClick={() => setIsMobileTeamsOpen(!isMobileTeamsOpen)}
+                  className="flex items-center justify-between w-full text-sm font-medium text-slate-700 dark:text-slate-200 py-1"
+                >
+                  Teams
+                  <span className={`material-symbols-outlined text-lg transition-transform duration-200 ${isMobileTeamsOpen ? 'rotate-180' : ''}`}>
+                    expand_more
+                  </span>
+                </button>
+                {isMobileTeamsOpen && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-slate-100 dark:border-slate-700 ml-1">
+                    {teamLinks.map((link) => (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 py-1"
+                      >
+                        <span className="material-symbols-outlined text-base text-primary/70">{link.icon}</span>
+                        {link.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <Link
                 href="/blog"
                 onClick={() => setIsMenuOpen(false)}
@@ -379,3 +428,4 @@ export default function Navigation() {
     </header>
   );
 }
+

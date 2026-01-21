@@ -1,6 +1,81 @@
+"use client";
+
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import Link from 'next/link';
+import { Award, BookOpen } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+// --- Components ---
+
+const stats = [
+  { value: "300+", label: "Delegates" },
+  { value: "12", label: "Councils" },
+  { value: "24", label: "Resolutions" },
+]
+
+function PastSuccess() {
+  return (
+    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl bg-[#1a2b3c] text-white">
+        <div className="grid grid-cols-1 gap-6 sm:gap-0 lg:grid-cols-2">
+          <div className="flex flex-col justify-center p-4 sm:p-8 md:p-12 lg:p-16">
+            <div className="mb-4 sm:mb-6 flex items-center gap-2">
+              <Award className="size-4 sm:size-5 text-amber-400" />
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">
+                Historical Milestone
+              </span>
+            </div>
+            <h2 className="mb-4 sm:mb-6 font-serif text-2xl sm:text-3xl md:text-4xl font-bold">
+              2022 Diplomatic Conference
+            </h2>
+            <p className="mb-6 sm:mb-8 text-xs sm:text-sm md:text-base leading-relaxed text-gray-300">
+              Reflecting on the monumental success of the 2022 summit held in
+              Budapest, where over 300 delegates from 45 universities
+              collaborated on revolutionary resolutions for maritime security.
+            </p>
+
+            <div className="mb-6 sm:mb-10 grid grid-cols-3 gap-4 sm:gap-6 border-y border-white/10 py-4 sm:py-8">
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  <div className="mb-0.5 sm:mb-1 font-serif text-xl sm:text-2xl md:text-3xl font-bold">
+                    {stat.value}
+                  </div>
+                  <div className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              asChild
+              size="sm"
+              className="w-fit bg-amber-500 px-4 sm:px-8 py-2 sm:py-4 font-bold text-xs sm:text-base text-[#1a2b3c] hover:bg-amber-500/90"
+            >
+              <Link href="#">
+                Read the 2022 Report
+                <BookOpen className="ml-2 size-3 sm:size-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="relative hidden min-h-[300px] sm:min-h-[400px] lg:block">
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuAY13UuIr5P_XmSLOkOUYe8fPcL3zTdWdwlJAmOhBGc0WlKvaTvsl3kWp8ML7HDMXZvL0Y-SzEcMtkeBkgQiggt9DQEZh8VIH4u78j9lI6fwcbc2ZIOISu7mURLUIgmnoFAuEtdHLEHLIhmKRJszPBKTgwtROYhL2m8yPyILbZfGewO1njnq-w5Qgar1NZqxNrxXdhR2IHspUjho0f4Nm2Uj5gdTWdAZ3Vtrr7HTHhaMkcAOMSQhH51nLKgEDfZi345_9z2dQzmcWgU')`,
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#1a2b3c]/20 lg:to-[#1a2b3c]" />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// --- Main Page Component ---
 
 export default function MUNPage() {
   return (
@@ -13,7 +88,7 @@ export default function MUNPage() {
             className="relative min-h-[560px] flex flex-col justify-center items-start px-12 py-20 bg-cover bg-center"
             style={{
               backgroundImage:
-                'linear-gradient(to right, rgba(22, 100, 156, 0.9) 0%, rgba(22, 100, 156, 0.4) 60%, rgba(0,0,0,0) 100%), url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&h=1080&fit=crop")',
+                'linear-gradient(to right, rgba(22, 100, 156, 0.9) 0%, rgba(22, 100, 156, 0.4) 60%, rgba(0,0,0,0) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBRcNbo_xf8xjs17oSvEe-uHey6xqpKdBTCGc3qrsBJUpW7rOnTRA6kPtE0W00c7PdVJipO1ABO3AydMUSCjqUOjAcjSuKvQIi7c9qL2eKQYfwiD1WPA2BWCI7Aci-Yf4cCF3y60lOnpWol4P3R1eaiOHOySQ4srX0BvjaGiYZdjwOOkKKx4pma0dkzMy7bb81cnZb8t4U615I8aRN3KRKn4luK6dTzEeQOvNBCmZnldQc4VTJDrZ1iUkG42ll8UAVY5RyHU1HEf-Yx")',
             }}
           >
             <div className="max-w-2xl text-white">
@@ -39,6 +114,9 @@ export default function MUNPage() {
             </div>
           </div>
         </section>
+
+        {/* Past Success Section (New) */}
+        <PastSuccess />
 
         {/* Upcoming Conferences */}
         <section className="mb-20">
