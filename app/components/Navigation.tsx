@@ -124,7 +124,7 @@ export default function Navigation() {
                 className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
               >
                 <span className="material-symbols-outlined text-base">dashboard</span>
-                Dashboard
+                Admin Dashboard
               </Link>
             )}
           </nav>
@@ -317,7 +317,7 @@ export default function Navigation() {
                   className="text-sm font-semibold text-primary flex items-center gap-1 py-1"
                 >
                   <span className="material-symbols-outlined text-base">dashboard</span>
-                  Dashboard
+                  Admin Dashboard
                 </Link>
               )}
             </nav>
