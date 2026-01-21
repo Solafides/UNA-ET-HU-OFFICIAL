@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  fullName      String    @map("full_name")
+  studentId     String?   @map("student_id")
+  avatar        String?
+  role          Role      @default(MEMBER)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  blogPosts     BlogPost[]
+  comments      Comment[]
+  teamMembers   TeamMember[]
+  
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  excerpt       String?   @db.Text
+  content       String    @db.Text
+  featuredImage String?   @map("featured_image")
+  category      String
+  status        PostStatus @default(DRAFT)
+  authorId      String    @map("author_id")
+  publishedAt   DateTime? @map("published_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  author        User      @relation(fields: [authorId], references: [id])
+  comments      Comment[]
+  likes         Like[]
+  tags          Tag[]
+  
+  @@map("blog_posts")
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Comment {
+  id            String    @id @default(cuid())
+  content       String    @db.Text
+  authorId      String    @map("author_id")
+  postId        String    @map("post_id")
+  parentId      String?   @map("parent_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  author        User      @relation(fields: [authorId], references: [id])
+  post          BlogPost  @relation(fields: [postId], references: [id])
+  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies       Comment[] @relation("CommentReplies")
+  likes         Like[]
+  
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  postId    String?  @map("post_id")
+  commentId String?  @map("comment_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  post      BlogPost? @relation(fields: [postId], references: [id])
+  comment   Comment?  @relation(fields: [commentId], references: [id])
+  
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@map("likes")
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  createdAt DateTime   @default(now()) @map("created_at")
+  
+  posts     BlogPost[]
+  
+  @@map("tags")
+}
+
+model Team {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  icon        String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  members     TeamMember[]
+  
+  @@map("teams")
+}
+
+model TeamMember {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  teamId      String    @map("team_id")
+  position    String
+  role        String?   // e.g., "President", "Coordinator", "Lead"
+  bio         String?   @db.Text
+  linkedin    String?
+  twitter     String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  user        User      @relation(fields: [userId], references: [id])
+  team        Team      @relation(fields: [teamId], references: [id])
+  
+  @@unique([userId, teamId])
+  @@map("team_members")
+}
+
+model Conference {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?   @db.Text
+  theme       String?
+  image       String?
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime  @map("end_date")
+  location    String?
+  status      ConferenceStatus @default(UPCOMING)
+  registrationOpen Boolean @default(false) @map("registration_open")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  @@map("conferences")
+}
+
+enum ConferenceStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?   @db.Text
+  image       String?
+  teamId      String?   @map("team_id")
+  status      String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  @@map("projects")
+}
+
+model GalleryImage {
+  id          String    @id @default(cuid())
+  title       String?
+  url         String
+  alt         String?
+  category    String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  @@map("gallery_images")
+}
