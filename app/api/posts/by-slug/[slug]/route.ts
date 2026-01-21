@@ -23,14 +23,17 @@ export async function GET(
         },
         likes: true,
         comments: {
-          orderBy: { createdAt: 'asc' },
+          where: { parentId: null }, // Fetch top-level comments
+          orderBy: { createdAt: 'desc' },
           include: {
-            author: {
-              select: {
-                id: true,
-                fullName: true,
-                avatar: true,
+            author: { select: { id: true, fullName: true, avatar: true } },
+            likes: true,
+            replies: {
+              include: {
+                author: { select: { id: true, fullName: true, avatar: true } },
+                likes: true,
               },
+              orderBy: { createdAt: 'asc' },
             },
           },
         },
@@ -73,6 +76,24 @@ export async function GET(
           name: comment.author.fullName,
           avatar: comment.author.avatar,
         },
+        likesCount: comment.likes.length,
+        likedByUser: userId
+          ? comment.likes.some((like) => like.userId === userId)
+          : false,
+        replies: comment.replies.map((reply) => ({
+          id: reply.id,
+          content: reply.content,
+          createdAt: reply.createdAt,
+          author: {
+            id: reply.author.id,
+            name: reply.author.fullName,
+            avatar: reply.author.avatar,
+          },
+          likesCount: reply.likes.length,
+          likedByUser: userId
+            ? reply.likes.some((like) => like.userId === userId)
+            : false,
+        })),
       })),
     });
   } catch (error) {

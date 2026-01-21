@@ -110,19 +110,18 @@ export default function TeamsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {presidency.map((member) => (
-              <div key={member.name} className="group flex flex-col items-center gap-5 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+              <div key={member.name} className="group relative">
                 <div
-                  className="w-48 h-48 md:w-64 md:h-64 aspect-square bg-center bg-no-repeat bg-cover rounded-full overflow-hidden relative shadow-md ring-4 ring-gray-50 dark:ring-gray-800 group-hover:ring-primary/20 transition-all"
+                  className="mb-4 aspect-square w-full rounded-2xl bg-cover bg-center shadow-sm hover:shadow-lg transition-all duration-300 transform group-hover:-translate-y-1"
                   style={{ backgroundImage: `url("${member.image}")` }}
-                >
-                </div>
+                />
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold group-hover:text-primary transition-colors text-[#101618] dark:text-white">
+                  <h3 className="text-2xl font-bold text-[#101618] dark:text-white leading-tight mb-2">
                     {member.name}
                   </h3>
-                  <p className="text-primary font-bold text-sm uppercase tracking-widest mt-2 bg-primary/10 px-3 py-1 rounded-full inline-block">
+                  <span className="text-primary font-bold text-sm uppercase tracking-widest bg-primary/10 px-4 py-1.5 rounded-full inline-block">
                     {member.role}
-                  </p>
+                  </span>
                 </div>
               </div>
             ))}

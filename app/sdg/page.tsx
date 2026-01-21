@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlayCircle, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -59,28 +60,135 @@ function SDGHero() {
 }
 
 const sdgGoals = [
-    { number: 1, title: "No Poverty", color: "#E5243B", focus: "Donation Drives" },
-    { number: 2, title: "Zero Hunger", color: "#DDA63A", focus: "Urban Farming" },
-    { number: 3, title: "Good Health", color: "#4C9F38", focus: "Autism Awareness" },
-    { number: 4, title: "Quality Education", color: "#C5192D", focus: "School Partnerships" },
-    { number: 5, title: "Gender Equality", color: "#FF3A21", focus: "Women in Tech" },
-    { number: 6, title: "Clean Water", color: "#26BDE2" },
-    { number: 7, title: "Clean Energy", color: "#FCC30B" },
-    { number: 8, title: "Decent Work", color: "#A21942" },
-    { number: 9, title: "Industry & Infra", color: "#FD6925" },
-    { number: 10, title: "Reduced Inequalities", color: "#DD1367", focus: "Advocacy Workshops" },
-    { number: 11, title: "Sustainable Cities", color: "#FD9D24" },
-    { number: 12, title: "Consumption", color: "#BF8B2E", focus: "Recycling Initiative" },
-    { number: 13, title: "Climate Action", color: "#3F7E44", focus: "Climate Monday" },
-    { number: 14, title: "Life Below Water", color: "#0A97D9" },
-    { number: 15, title: "Life on Land", color: "#56C02B", focus: "Green Hiking" },
-    { number: 16, title: "Peace & Justice", color: "#00689D" },
-    { number: 17, title: "Partnerships", color: "#19486A" },
+    {
+        number: 1,
+        title: "No Poverty",
+        color: "#E5243B",
+        description: "Eliminating poverty ensures economic stability and equal opportunities, reducing inequality worldwide.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/1.png"
+    },
+    {
+        number: 2,
+        title: "Zero Hunger",
+        color: "#DDA63A",
+        description: "Ending hunger and ensuring food security improves global health and productivity.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/2.png"
+    },
+    {
+        number: 3,
+        title: "Good Health and Well-being",
+        color: "#4C9F38",
+        description: "Universal healthcare access promotes longer, healthier lives and reduces disease burdens.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/3.png"
+    },
+    {
+        number: 4,
+        title: "Quality Education",
+        color: "#C5192D",
+        description: "Providing inclusive and equitable education empowers individuals and drives social and economic progress.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/4.png"
+    },
+    {
+        number: 5,
+        title: "Gender Equality",
+        color: "#FF3A21",
+        description: "Achieving gender equality fosters social justice and enhances economic and political inclusion.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/5.png"
+    },
+    {
+        number: 6,
+        title: "Clean Water and Sanitation",
+        color: "#26BDE2",
+        description: "Universal access to water and sanitation prevents diseases and supports sustainable living.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/6.png"
+    },
+    {
+        number: 7,
+        title: "Affordable and Clean Energy",
+        color: "#FCC30B",
+        description: "Renewable energy adoption reduces reliance on fossil fuels and mitigates climate change.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/7.png"
+    },
+    {
+        number: 8,
+        title: "Decent Work and Economic Growth",
+        color: "#A21942",
+        description: "Sustainable economic growth ensures fair wages, productivity, and social welfare.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/8.png"
+    },
+    {
+        number: 9,
+        title: "Industry, Innovation, and Infrastructure",
+        color: "#FD6925",
+        description: "Building resilient infrastructure promotes innovation, economic stability, and job creation.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/9.png"
+    },
+    {
+        number: 10,
+        title: "Reduced Inequalities",
+        color: "#DD1367",
+        description: "Ensuring social, economic, and political inclusion strengthens communities and global cooperation.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/10.png"
+    },
+    {
+        number: 11,
+        title: "Sustainable Cities and Communities",
+        color: "#FD9D24",
+        description: "Urban planning for sustainability reduces pollution, traffic, and housing crises.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/11.png"
+    },
+    {
+        number: 12,
+        title: "Responsible Consumption and Production",
+        color: "#BF8B2E",
+        description: "Circular economy practices minimize waste and reduce environmental footprints.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/12.png"
+    },
+    {
+        number: 13,
+        title: "Climate Action",
+        color: "#3F7E44",
+        description: "Mitigating climate change prevents extreme weather events and protects biodiversity.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/13.png"
+    },
+    {
+        number: 14,
+        title: "Life Below Water",
+        color: "#0A97D9",
+        description: "Ocean conservation ensures sustainable fisheries and protects marine ecosystems.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/14.png"
+    },
+    {
+        number: 15,
+        title: "Life on Land",
+        color: "#56C02B",
+        description: "Forest conservation, biodiversity protection, and land restoration maintain ecological balance.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/15.png"
+    },
+    {
+        number: 16,
+        title: "Peace, Justice, and Strong Institutions",
+        color: "#00689D",
+        description: "Transparent governance and justice systems reduce corruption and conflict.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/16.png"
+    },
+    {
+        number: 17,
+        title: "Partnerships for the Goals",
+        color: "#19486A",
+        description: "Global cooperation among governments, businesses, and civil society drives SDG success.",
+        icon: "https://open-sdg.github.io/sdg-translations/assets/img/goals/en/17.png"
+    },
 ];
 
 function SDGGrid() {
+    const [selectedGoal, setSelectedGoal] = useState<(typeof sdgGoals)[0] | null>(null);
+
+    // Close modal when clicking outside or on close button
+    const closeModal = () => setSelectedGoal(null);
+
     return (
-        <section className="py-20 bg-card">
+        <section className="py-20 bg-card relative">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="max-w-2xl">
@@ -88,8 +196,7 @@ function SDGGrid() {
                             Our Commitment: The 17 Goals
                         </h2>
                         <p className="mt-4 text-lg text-muted-foreground">
-                            Explore how our local actions contribute to the global agenda. Hover over a goal to
-                            see our specific focus areas.
+                            Click on any goal to learn more about its impact and our vision.
                         </p>
                     </div>
                     <div className="flex items-center gap-2 text-primary font-bold cursor-pointer group">
@@ -102,24 +209,69 @@ function SDGGrid() {
                     {sdgGoals.map((goal) => (
                         <div
                             key={goal.number}
-                            className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl transition-all hover:shadow-lg hover:scale-[1.02]"
-                            style={{ backgroundColor: goal.color }}
+                            onClick={() => setSelectedGoal(goal)}
+                            className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl transition-all hover:shadow-lg hover:scale-[1.02] bg-white dark:bg-slate-900 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
                         >
-                            <div className="flex h-full flex-col justify-between p-3 md:p-4 text-white">
-                                <span className="text-xl font-black opacity-80">{goal.number}</span>
-                                <div>
-                                    <h3 className="font-bold leading-tight text-sm">{goal.title}</h3>
-                                    {goal.focus && (
-                                        <p className="mt-2 h-0 overflow-hidden text-xs font-medium opacity-0 transition-all group-hover:h-auto group-hover:opacity-100">
-                                            {goal.focus}
-                                        </p>
-                                    )}
-                                </div>
+                            <div className="absolute inset-0 p-2">
+                                <Image
+                                    src={goal.icon}
+                                    alt={goal.title}
+                                    fill
+                                    className="object-contain p-2"
+                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                                />
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            {/* Modal / Detail View */}
+            {selectedGoal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div
+                        className="relative w-full max-w-lg bg-white dark:bg-[#1a1d23] rounded-2xl shadow-2xl p-6 md:p-8 animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={closeModal}
+                            className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+
+                        <div className="flex flex-col items-center text-center">
+                            <div
+                                className="w-24 h-24 relative mb-6 rounded-lg overflow-hidden shadow-md"
+                                style={{ backgroundColor: selectedGoal.color }}
+                            >
+                                <Image
+                                    src={selectedGoal.icon}
+                                    alt={selectedGoal.title}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+
+                            <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">
+                                {selectedGoal.number}. {selectedGoal.title}
+                            </h3>
+
+                            <div className="w-16 h-1 bg-primary rounded-full mb-6"></div>
+
+                            <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+                                {selectedGoal.description}
+                            </p>
+
+                            <Button onClick={closeModal} className="mt-8 font-bold">
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                    {/* Click outside to close */}
+                    <div className="absolute inset-0 -z-10" onClick={closeModal}></div>
+                </div>
+            )}
         </section>
     );
 }

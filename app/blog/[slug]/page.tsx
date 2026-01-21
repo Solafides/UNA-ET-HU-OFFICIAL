@@ -33,6 +33,20 @@ type PostDetail = {
       name: string;
       avatar: string | null;
     };
+    likesCount: number;
+    likedByUser: boolean;
+    replies: Array<{
+      id: string;
+      content: string;
+      createdAt: string;
+      author: {
+        id: string;
+        name: string;
+        avatar: string | null;
+      };
+      likesCount: number;
+      likedByUser: boolean;
+    }>;
   }>;
 };
 
@@ -46,6 +60,9 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
   const [likeLoading, setLikeLoading] = useState(false);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -120,7 +137,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       const res = await fetch(`/api/posts/${post.id}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: commentContent }),
+        body: JSON.stringify({ content: commentContent }), // No parentId for top-level
       });
       const data = await res.json();
       if (!res.ok) {
@@ -128,7 +145,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       }
       setPost({
         ...post,
-        comments: [...post.comments, data],
+        comments: [data, ...post.comments], // Prepend new comment
       });
       setCommentContent('');
       toast.success('Comment posted', { id: pending });
@@ -137,6 +154,98 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       toast.error(error.message || 'Failed to post comment', { id: pending });
     } finally {
       setCommentLoading(false);
+    }
+  };
+
+  const handleReplySubmit = async (parentId: string) => {
+    if (!post || !replyContent.trim() || replyLoading) return;
+    if (!session?.user) {
+      toast.error('Please sign in to reply');
+      return;
+    }
+
+    setReplyLoading(true);
+    const pending = toast.loading('Posting reply...');
+    try {
+      const res = await fetch(`/api/posts/${post.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: replyContent, parentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to post reply');
+
+      // Update post state with new reply
+      const updatedComments = post.comments.map(c => {
+        if (c.id === parentId) {
+          return { ...c, replies: [...(c.replies || []), data] };
+        }
+        return c;
+      });
+
+      setPost({ ...post, comments: updatedComments });
+      setReplyContent('');
+      setReplyingTo(null);
+      toast.success('Reply posted', { id: pending });
+    } catch (error: any) {
+      toast.error(error.message, { id: pending });
+    } finally {
+      setReplyLoading(false);
+    }
+  };
+
+  const handleLikeComment = async (commentId: string, isReply = false, parentId?: string) => {
+    if (!post || !session?.user) {
+      toast.error('Please sign in to like comments');
+      return;
+    }
+
+    // Optimistic update
+    const updateLikeState = (comments: any[]): any[] => {
+      return comments.map(c => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            likedByUser: !c.likedByUser,
+            likesCount: c.likedByUser ? c.likesCount - 1 : c.likesCount + 1
+          };
+        }
+        if (c.replies) {
+          return { ...c, replies: updateLikeState(c.replies) };
+        }
+        return c;
+      });
+    };
+
+    setPost({ ...post, comments: updateLikeState(post.comments) });
+
+    try {
+      const res = await fetch(`/api/comments/${commentId}/like`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to like comment');
+      const data = await res.json();
+
+      // Re-sync with server state to be sure
+      const syncLikeState = (comments: any[]): any[] => {
+        return comments.map(c => {
+          if (c.id === commentId) {
+            return {
+              ...c,
+              likedByUser: data.liked,
+              likesCount: data.likesCount
+            };
+          }
+          if (c.replies) {
+            return { ...c, replies: syncLikeState(c.replies) };
+          }
+          return c;
+        });
+      };
+      setPost(prev => prev ? ({ ...prev, comments: syncLikeState(prev.comments) }) : null);
+
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to like comment');
+      // Revert optimistic update (simplified by just refetching or ignoring for now)
     }
   };
 
@@ -341,10 +450,90 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
                             </span>
                           </div>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-4">
                           {comment.content}
                         </p>
+
+                        {/* Comment Actions */}
+                        <div className="flex items-center gap-4 text-xs font-semibold text-[#5e7d8d]">
+                          <button
+                            onClick={() => handleLikeComment(comment.id)}
+                            className={`flex items-center gap-1 hover:text-primary transition-colors ${comment.likedByUser ? 'text-primary' : ''}`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              {comment.likedByUser ? 'favorite' : 'favorite'}
+                            </span>
+                            {comment.likesCount > 0 && <span>{comment.likesCount}</span>}
+                            Like
+                          </button>
+                          <button
+                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                            className="flex items-center gap-1 hover:text-primary transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">reply</span>
+                            Reply
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Reply Input */}
+                      {replyingTo === comment.id && (
+                        <div className="mt-4 ml-2 animate-in fade-in slide-in-from-top-2">
+                          <textarea
+                            placeholder="Write a reply..."
+                            rows={2}
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            className="w-full bg-gray-50 dark:bg-gray-800 border-0 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary mb-2"
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => setReplyingTo(null)}
+                              className="text-xs font-bold text-gray-500 hover:text-gray-700"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleReplySubmit(comment.id)}
+                              disabled={replyLoading || !replyContent.trim()}
+                              className="bg-primary text-white px-3 py-1.5 rounded-md text-xs font-bold hover:bg-primary/90 disabled:opacity-50"
+                            >
+                              {replyLoading ? 'Replying...' : 'Reply'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Nested Replies */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-100 dark:border-gray-800 relative">
+                          {comment.replies.map((reply) => (
+                            <div className="flex gap-3" key={reply.id}>
+                              <div className="w-8 h-8 rounded-full bg-cover bg-center bg-gray-300 flex-shrink-0"
+                                style={{ backgroundImage: `url("${reply.author.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}")` }}
+                              />
+                              <div className="flex-grow bg-gray-50 dark:bg-[#202225] rounded-xl rounded-tl-none p-4">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-bold text-sm">{reply.author.name}</span>
+                                  <span className="text-xs text-gray-400">{new Date(reply.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{reply.content}</p>
+                                <button
+                                  onClick={() => handleLikeComment(reply.id, true)}
+                                  className={`flex items-center gap-1 text-xs font-semibold hover:text-primary transition-colors ${reply.likedByUser ? 'text-primary' : 'text-gray-500'}`}
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">
+                                    {reply.likedByUser ? 'favorite' : 'favorite'}
+                                  </span>
+                                  {reply.likesCount > 0 && <span>{reply.likesCount}</span>}
+                                  Like
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

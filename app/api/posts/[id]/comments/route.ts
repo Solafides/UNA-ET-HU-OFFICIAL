@@ -63,7 +63,7 @@ export async function POST(
       );
     }
 
-    const { content } = await request.json();
+    const { content, parentId } = await request.json();
 
     if (!content || !content.trim()) {
       return NextResponse.json(
@@ -77,6 +77,7 @@ export async function POST(
         content: content.trim(),
         postId: id,
         authorId: (session.user as any).id as string,
+        parentId: parentId || null,
       },
       include: {
         author: {

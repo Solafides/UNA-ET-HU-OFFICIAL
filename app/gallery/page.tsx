@@ -31,8 +31,8 @@ function GalleryHeader({ activeCategory, setActiveCategory }: { activeCategory: 
                                 key={category}
                                 onClick={() => setActiveCategory(category)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === category
-                                        ? "bg-primary text-primary-foreground text-white"
-                                        : "bg-muted text-muted-foreground hover:bg-muted/80 bg-gray-100 dark:bg-gray-800"
+                                    ? "bg-primary text-primary-foreground text-white"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80 bg-gray-100 dark:bg-gray-800"
                                     }`}
                             >
                                 {category}
@@ -105,7 +105,7 @@ function GalleryGrid({ activeCategory }: { activeCategory: string }) {
         <section className="pb-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Masonry Grid */}
-                <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+                <div className="columns-2 md:columns-3 gap-4 space-y-4">
                     {filteredImages.map((image) => (
                         <div
                             key={image.id}
@@ -113,10 +113,10 @@ function GalleryGrid({ activeCategory }: { activeCategory: string }) {
                         >
                             <div
                                 className={`relative ${image.height === "tall"
-                                        ? "h-96"
-                                        : image.height === "medium"
-                                            ? "h-72"
-                                            : "h-48"
+                                    ? "h-96"
+                                    : image.height === "medium"
+                                        ? "h-72"
+                                        : "h-48"
                                     }`}
                             >
                                 <Image
