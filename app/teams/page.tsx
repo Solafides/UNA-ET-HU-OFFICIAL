@@ -108,7 +108,7 @@ export default function TeamsPage() {
             <div className="h-[1px] w-12 bg-gray-200 dark:bg-gray-800"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
             {presidency.map((member) => (
               <div key={member.name} className="group relative">
                 <div

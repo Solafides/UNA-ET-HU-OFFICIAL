@@ -15,7 +15,7 @@ export default function Home() {
               className="w-full h-full bg-cover bg-center"
               style={{
                 backgroundImage:
-                  'url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&h=1080&fit=crop")',
+                  'url("https://images.unsplash.com/photo-1590274853856-f22d5ee3d228?w=1920&h=1080&fit=crop")',
               }}
             ></div>
           </div>
