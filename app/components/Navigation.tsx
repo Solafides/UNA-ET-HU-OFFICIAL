@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isTeamsDropdownOpen, setIsTeamsDropdownOpen] = useState(false); // For Desktop Teams Dropdown
+  const [isTeamsOpen, setIsTeamsOpen] = useState(false); // For Desktop Teams Dropdown
   const [isMobileTeamsOpen, setIsMobileTeamsOpen] = useState(false); // For Mobile Teams Submenu
   const dropdownRef = useRef<HTMLDivElement>(null);
   const teamsDropdownRef = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ export default function Navigation() {
         setIsDropdownOpen(false);
       }
       if (teamsDropdownRef.current && !teamsDropdownRef.current.contains(event.target as Node)) {
-        setIsTeamsDropdownOpen(false);
+        setIsTeamsOpen(false);
       }
     };
 
@@ -88,60 +88,88 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-sm font-semibold text-primary"
-            >
+          <div className="hidden md:flex items-center gap-1">
+            <Link href="/" className="px-4 py-2 rounded-full text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
               Home
-            </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-            >
-              About Us
             </Link>
 
             {/* Teams Dropdown */}
-            <div className="relative" ref={teamsDropdownRef}>
+            <div ref={teamsDropdownRef} className="relative">
               <button
-                onClick={() => setIsTeamsDropdownOpen(!isTeamsDropdownOpen)}
-                className="flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors focus:outline-none"
+                onClick={() => setIsTeamsOpen(!isTeamsOpen)}
+                className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
                 Teams
-                <span className={`material-symbols-outlined text-lg transition-transform duration-200 ${isTeamsDropdownOpen ? 'rotate-180' : ''}`}>
-                  expand_more
+                <span className={`material-symbols-outlined text-[18px] transition-transform duration-200 ${isTeamsOpen ? 'rotate-180' : ''}`}>
+                  keyboard_arrow_down
                 </span>
               </button>
 
-              {isTeamsDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-[#1a1d23] border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  {teamLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      onClick={() => setIsTeamsDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg text-primary">{link.icon}</span>
-                      {link.name}
-                    </Link>
-                  ))}
+              {/* Dropdown Menu */}
+              <div
+                className={`absolute top-full left-0 mt-2 w-60 bg-white dark:bg-[#1a1d23] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-200 origin-top ${isTeamsOpen
+                  ? 'opacity-100 translate-y-0 scale-100'
+                  : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+                  }`}
+              >
+                <div className="p-2 flex flex-col gap-1">
+                  <Link
+                    href="/teams"
+                    className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm font-medium text-[#101618] dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors group"
+                    onClick={() => setIsTeamsOpen(false)}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                      <span className="material-symbols-outlined text-[18px]">groups</span>
+                    </div>
+                    <div>
+                      <div className="font-semibold">All Teams</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">View structure</div>
+                    </div>
+                  </Link>
+                  <div className="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
+                  <Link
+                    href="/teams?active=mun"
+                    className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
+                    onClick={() => setIsTeamsOpen(false)}
+                  >
+                    <span>Model UN Team</span>
+                  </Link>
+                  <Link
+                    href="/teams?active=sdg"
+                    className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
+                    onClick={() => setIsTeamsOpen(false)}
+                  >
+                    <span>SDG Ambassadors</span>
+                  </Link>
+                  <Link
+                    href="/teams?active=social"
+                    className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
+                    onClick={() => setIsTeamsOpen(false)}
+                  >
+                    <span>Social Impact</span>
+                  </Link>
+                  <Link
+                    href="/teams?active=innovation"
+                    className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
+                    onClick={() => setIsTeamsOpen(false)}
+                  >
+                    <span>Innovation Team</span>
+                  </Link>
                 </div>
-              )}
+              </div>
             </div>
 
-            <Link
-              href="/blog"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-            >
+            <Link href="/gallery" className="px-4 py-2 rounded-full text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+              Gallery
+            </Link>
+            <Link href="/magazine" className="px-4 py-2 rounded-full text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+              Magazine
+            </Link>
+            <Link href="/blog" className="px-4 py-2 rounded-full text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
               Blog
             </Link>
-            <Link
-              href="/gallery" // New Gallery Page
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors"
-            >
-              Gallery
+            <Link href="/about" className="px-4 py-2 rounded-full text-sm font-medium text-[#5e5f8d] dark:text-gray-300 hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+              About
             </Link>
             {(session as any)?.user?.role === 'SUPER_ADMIN' && (
               <Link
@@ -161,7 +189,7 @@ export default function Navigation() {
                 Admin Dashboard
               </Link>
             )}
-          </nav>
+          </div>
 
           {/* Right side: desktop account / auth + mobile menu button */}
           <div className="flex items-center gap-2">
