@@ -43,6 +43,10 @@
     @apply border-border-gray;
   }
   
+  html, body {
+    overflow-x: hidden;
+  }
+  
   body {
     @apply bg-background-light dark:bg-background-dark text-text-main dark:text-gray-200 font-display;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;

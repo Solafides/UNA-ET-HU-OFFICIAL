@@ -25,38 +25,43 @@ export default async function Home() {
               }}
             ></div>
           </div>
-          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col md:flex-row items-center gap-12">
-
-            {/* Left Side: Announcements (if any) */}
-            {announcements.length > 0 && (
-              <div className="hidden md:flex flex-col gap-4 w-full md:w-[320px] shrink-0 order-2 md:order-1 mt-8 md:mt-0">
-                {announcements.map((post: any) => (
-                  <div key={post.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-xl hover:-translate-y-1 transition-transform duration-300">
-                    <div className="flex items-start gap-3">
+          {/* Top Right Announcement (Absolute - Desktop Only) */}
+          {announcements.length > 0 && (
+            <div className="hidden md:flex absolute top-4 right-4 z-30 flex-col gap-2 w-full max-w-[200px]">
+              {announcements.map((post: any) => (
+                <Link href={`/announcements/${post.id}`} key={post.id} className="block group">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 shadow-xl hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02]">
+                    <div className="flex items-start gap-2">
                       {post.image && (
-                        <div className="w-16 h-16 rounded-lg bg-black/20 overflow-hidden shrink-0">
-                          <img src={post.image} alt="" className="w-full h-full object-cover" />
+                        <div className="w-8 h-8 rounded bg-black/20 overflow-hidden shrink-0">
+                          <img src={post.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></span>
-                            <span className="text-[10px] uppercase font-bold text-green-400 tracking-wider">New Update</span>
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></span>
+                            <span className="text-[8px] uppercase font-bold text-green-400 tracking-wider">New</span>
                           </span>
+                          <span className="material-symbols-outlined text-white/50 text-[12px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                         </div>
-                        <h4 className="text-white font-bold text-sm leading-tight mb-1">{post.title}</h4>
+                        <h4 className="text-white font-bold text-xs leading-tight mb-0.5 line-clamp-1 group-hover:text-blue-200 transition-colors">{post.title}</h4>
                         {post.content && (
-                          <p className="text-slate-300 text-xs line-clamp-2 leading-relaxed">{post.content}</p>
+                          <p className="text-slate-300 text-[10px] line-clamp-2 leading-relaxed">{post.content}</p>
                         )}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </Link>
+              ))}
+            </div>
+          )}
 
-            <div className="max-w-2xl flex-1 order-1 md:order-2">
+          <div className="relative z-20 ml-0 md:ml-12 max-w-7xl mr-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-col md:flex-row items-start gap-12">
+
+
+
+            <div className="max-w-2xl flex-1 order-1 md:order-2 mt-4 md:mt-0 mr-auto text-left">
               <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 text-primary px-3 py-1 rounded-full mb-6">
                 <span className="material-symbols-outlined text-sm">auto_awesome</span>
                 <span className="text-xs font-bold uppercase tracking-wider">
@@ -68,7 +73,7 @@ export default async function Home() {
                 Global Leaders
               </h1>
               <p className="text-lg text-slate-200 mb-10 leading-relaxed">
-                Join a community dedicated to diplomacy, sustainable development, and social
+                Join a community dedicated to diplomacy, sustainable development, and socio
                 impact at Hawassa University. We translate global goals into local actions.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -89,6 +94,36 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Mobile Announcements (Below Hero) */}
+        {announcements.length > 0 && (
+          <div className="md:hidden w-full bg-slate-900 border-b border-white/5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-start gap-3 p-4 w-max">
+              {announcements.map((post: any) => (
+                <Link href={`/announcements/${post.id}`} key={post.id} className="block group shrink-0 w-[200px]">
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-2.5 active:bg-white/10 transition-colors">
+                    <div className="flex items-start gap-2.5">
+                      {post.image && (
+                        <div className="w-8 h-8 rounded bg-black/20 overflow-hidden shrink-0">
+                          <img src={post.image} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></span>
+                            <span className="text-[9px] uppercase font-bold text-green-400 tracking-wider">New</span>
+                          </span>
+                        </div>
+                        <h4 className="text-white font-bold text-xs leading-tight mb-0.5 line-clamp-2">{post.title}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mission / Core Areas */}
         <section className="py-24 bg-white dark:bg-[#212935]">

@@ -33,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light" suppressHydrationWarning>
+    <html lang="en" className="light overflow-x-hidden" suppressHydrationWarning>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap"
@@ -41,7 +41,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${newsreader.variable} ${notoSans.variable} antialiased`}
+        className={`${inter.variable} ${newsreader.variable} ${notoSans.variable} antialiased overflow-x-hidden`}
       >
         <Providers>
           {children}

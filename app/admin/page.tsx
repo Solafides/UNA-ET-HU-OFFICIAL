@@ -419,7 +419,7 @@ export default function AdminDashboard() {
     <div className="flex flex-col min-h-screen bg-[#f5f5f8] dark:bg-[#0f0f23] text-[#101018] dark:text-white transition-colors duration-200">
       <Navigation />
 
-      <div className="bg-white dark:bg-[#1a1a2e] border-b border-[#dadae7] dark:border-gray-800 shadow-sm sticky top-16 z-30">
+      <div className="bg-white dark:bg-[#1a1a2e] border-b border-[#dadae7] dark:border-gray-800 shadow-sm sticky top-16 z-[60]">
         <div className="mx-auto max-w-[1200px] px-4 md:px-8">
           <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar" aria-label="Dashboard Navigation">
             <button
