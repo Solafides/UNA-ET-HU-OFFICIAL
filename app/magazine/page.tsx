@@ -30,7 +30,7 @@ export default function MagazinePage() {
                     </p>
                 </div>
 
-                <div className="w-full max-w-7xl flex justify-center items-center min-h-[800px] bg-white dark:bg-[#1a1d23] rounded-2xl shadow-xl overflow-hidden p-4 md:p-8 border border-gray-200 dark:border-gray-800">
+                <div className="w-full max-w-7xl flex justify-center items-center bg-white dark:bg-[#1a1d23] rounded-2xl shadow-xl overflow-hidden p-1 md:p-8 border border-gray-200 dark:border-gray-800">
                     <MagazineFlipBook />
                 </div>
 

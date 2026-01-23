@@ -45,7 +45,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               duration: 3000,

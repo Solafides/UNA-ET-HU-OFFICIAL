@@ -47,16 +47,29 @@ export default function MagazineFlipBook() {
     };
 
     // Calculate dynamic dimensions based on window size
-    const [dimensions, setDimensions] = useState({ width: 600, height: 848 }); // ~A4 ratio 1:1.414
+    const [dimensions, setDimensions] = useState({ width: 400, height: 565 });
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
-            // Increase base size: 90% of screen width (double page) max 1200px
-            // Divide by 2 because 'width' in react-pageflip is per page
-            const availableWidth = Math.min(window.innerWidth * 0.95, 1200);
-            const width = availableWidth / 2;
-            const height = width * 1.414;
-            setDimensions({ width, height });
+            const width = window.innerWidth;
+            const mobile = width < 768;
+            setIsMobile(mobile);
+
+            if (mobile) {
+                // Mobile: Single page, larger width
+                const availableWidth = Math.min(width * 0.95, 600);
+                const pageHeight = availableWidth * 1.414;
+                setDimensions({ width: availableWidth, height: pageHeight });
+            } else {
+                // Desktop: Double page spread
+                // Total width for spread = 80% to 90% of screen, max 1200px
+                // Page width = Total width / 2
+                const availableWidth = Math.min(width * 0.9, 1400);
+                const pageWidth = availableWidth / 2;
+                const pageHeight = pageWidth * 1.414;
+                setDimensions({ width: pageWidth, height: pageHeight });
+            }
         };
 
         handleResize(); // Initial calc
@@ -87,8 +100,8 @@ export default function MagazineFlipBook() {
                     className="flex justify-center"
                 >
                     {/* 
-                        @ts-ignore: HTMLFlipBook types issue
-                    */}
+                @ts-ignore: HTMLFlipBook types issue
+            */}
                     <HTMLFlipBook
                         width={dimensions.width}
                         height={dimensions.height}
@@ -105,7 +118,7 @@ export default function MagazineFlipBook() {
                         maxHeight={1500}
                         drawShadow={true}
                         flippingTime={1000}
-                        usePortrait={true}
+                        usePortrait={isMobile}
                         startZIndex={0}
                         autoSize={true}
                         maxShadowOpacity={0.5}
@@ -127,6 +140,7 @@ export default function MagazineFlipBook() {
                                     <Page
                                         pageNumber={index + 1}
                                         width={dimensions.width}
+                                        onLoadSuccess={index === 0 ? onPageLoadSuccess : undefined}
                                         renderTextLayer={false}
                                         renderAnnotationLayer={false}
                                         className="shadow-inner"

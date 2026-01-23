@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -7,10 +8,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                <span className="material-symbols-outlined text-xl">public</span>
+              <div className="relative w-24 h-24 md:w-40 md:h-40 flex items-center justify-center">
+                <Image
+                  src="/UN_white_logo.svg"
+                  alt="UNA-ET-HU Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-white uppercase">
+              <h1 className="text-l font-bold tracking-tight text-white uppercase">
                 UNA-ET-HU
               </h1>
             </div>
@@ -42,7 +48,7 @@ export default function Footer() {
               </a>
             </div>
           </div>
-          
+
           <div>
             <h5 className="text-white font-bold mb-6">Quick Links</h5>
             <ul className="space-y-4 text-sm">
@@ -74,7 +80,7 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          
+
           <div>
             <h5 className="text-white font-bold mb-6">Teams</h5>
             <ul className="space-y-4 text-sm">
@@ -88,7 +94,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/teams/sdg-ambassadors"
+                  href="/sdg"
                   className="hover:text-primary transition-colors"
                 >
                   SDG Hub
@@ -106,7 +112,7 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          
+
           <div>
             <h5 className="text-white font-bold mb-6">Newsletter</h5>
             <p className="text-sm mb-4">
@@ -127,7 +133,7 @@ export default function Footer() {
             </form>
           </div>
         </div>
-        
+
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
           <p>
             © 2024 United Nations Association Ethiopia - HU Chapter. All rights reserved.

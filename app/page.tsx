@@ -1,8 +1,14 @@
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 
-export default function Home() {
+export default async function Home() {
+  const announcements = await prisma.heroPost.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
   return (
     <>
       <Navigation />
@@ -10,7 +16,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative w-full min-h-[600px] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-transparent z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/30 z-10"></div>
             <div
               className="w-full h-full bg-cover bg-center"
               style={{
@@ -19,8 +25,38 @@ export default function Home() {
               }}
             ></div>
           </div>
-          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div className="max-w-2xl">
+          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col md:flex-row items-center gap-12">
+
+            {/* Left Side: Announcements (if any) */}
+            {announcements.length > 0 && (
+              <div className="hidden md:flex flex-col gap-4 w-full md:w-[320px] shrink-0 order-2 md:order-1 mt-8 md:mt-0">
+                {announcements.map((post: any) => (
+                  <div key={post.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-xl hover:-translate-y-1 transition-transform duration-300">
+                    <div className="flex items-start gap-3">
+                      {post.image && (
+                        <div className="w-16 h-16 rounded-lg bg-black/20 overflow-hidden shrink-0">
+                          <img src={post.image} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></span>
+                            <span className="text-[10px] uppercase font-bold text-green-400 tracking-wider">New Update</span>
+                          </span>
+                        </div>
+                        <h4 className="text-white font-bold text-sm leading-tight mb-1">{post.title}</h4>
+                        {post.content && (
+                          <p className="text-slate-300 text-xs line-clamp-2 leading-relaxed">{post.content}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="max-w-2xl flex-1 order-1 md:order-2">
               <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 text-primary px-3 py-1 rounded-full mb-6">
                 <span className="material-symbols-outlined text-sm">auto_awesome</span>
                 <span className="text-xs font-bold uppercase tracking-wider">
