@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import HTMLFlipBook from 'react-pageflip';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -11,112 +10,43 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-export default function MagazineFlipBook() {
+export default function MagazineViewer() {
     const [numPages, setNumPages] = useState<number>(0);
-    const [currentPage, setCurrentPage] = useState<number>(0);
-    const bookRef = useRef<any>(null);
-    const soundRef = useRef<HTMLAudioElement | null>(null);
+    const [scale, setScale] = useState(1.0);
 
     const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
         setNumPages(numPages);
     };
 
-    const playFlipSound = useCallback(() => {
-        if (soundRef.current) {
-            soundRef.current.currentTime = 0;
-            soundRef.current.play().catch((e) => {
-                // Ignore auto-play errors
-            });
-        }
-    }, []);
-
-    const onFlip = useCallback((e: any) => {
-        setCurrentPage(e.data);
-    }, []);
-
-    const goToPrevPage = () => {
-        if (bookRef.current) {
-            bookRef.current.pageFlip().flipPrev();
-        }
-    };
-
-    const goToNextPage = () => {
-        if (bookRef.current) {
-            bookRef.current.pageFlip().flipNext();
-        }
-    };
-
-    // Calculate dynamic dimensions based on window size
-    const [dimensions, setDimensions] = useState({ width: 600, height: 848 });
-    const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(1.414); // Default to A4
-
-    const onPageLoadSuccess = (page: any) => {
-        // Safely get viewport dimensions
-        try {
-            const viewport = page.getViewport({ scale: 1 });
-            if (viewport.width && viewport.height) {
-                const ratio = viewport.height / viewport.width;
-                if (!isNaN(ratio) && ratio > 0) {
-                    setPdfAspectRatio(ratio);
-                }
-            }
-        } catch (e) {
-            console.error("Failed to calculate aspect ratio", e);
-        }
-    };
-
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const handleResize = () => {
-            const width = window.innerWidth;
-            const mobile = width < 768;
-            setIsMobile(mobile);
-
-            if (mobile) {
-                // Mobile: Single page, larger width
-                let availableWidth = Math.min(width * 0.95, 600);
-                let pageHeight = availableWidth * pdfAspectRatio;
-
-                // Height constraint (e.g., max 80vh to verify visibility)
-                const maxHeight = window.innerHeight * 0.8;
-                if (pageHeight > maxHeight) {
-                    pageHeight = maxHeight;
-                    availableWidth = pageHeight / pdfAspectRatio;
-                }
-
-                setDimensions({ width: availableWidth, height: pageHeight });
-            } else {
-                // Desktop: Double page spread
-                // Total width for spread = 95% of screen, max 1600px
-                let availableWidth = Math.min(width * 0.95, 1600);
-                let pageWidth = availableWidth / 2;
-                let pageHeight = pageWidth * pdfAspectRatio;
-
-                // Height constraint
-                const maxHeight = window.innerHeight * 0.85; // Leave space for nav/controls
-                if (pageHeight > maxHeight) {
-                    pageHeight = maxHeight;
-                    pageWidth = pageHeight / pdfAspectRatio;
-                }
-
-                setDimensions({ width: pageWidth, height: pageHeight });
-            }
-        };
-
-        handleResize(); // Initial calc
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.2, 3.0));
+    const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.5));
 
     return (
         <div className="flex flex-col items-center w-full">
-            {/* Audio Element - Hidden */}
-            <audio ref={soundRef} src="/page-flip.mp3" preload="auto" />
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-4 mb-6 sticky top-20 z-10 bg-[#f5f5f8] dark:bg-[#0f0f23] p-2 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
+                <button
+                    onClick={handleZoomOut}
+                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                    title="Zoom Out"
+                >
+                    <span className="material-symbols-outlined">remove_circle_outline</span>
+                </button>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 w-12 text-center">
+                    {Math.round(scale * 100)}%
+                </span>
+                <button
+                    onClick={handleZoomIn}
+                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                    title="Zoom In"
+                >
+                    <span className="material-symbols-outlined">add_circle_outline</span>
+                </button>
+            </div>
 
-            <div className="relative flex justify-center items-center w-full overflow-hidden">
+            <div className="flex flex-col items-center w-full gap-8 pb-20">
                 <Document
-                    file="/hu-times-vol7.pdf"
+                    file="/november-issue-2025.pdf"
                     onLoadSuccess={onDocumentLoadSuccess}
                     loading={
                         <div className="flex flex-col items-center gap-4 py-20">
@@ -129,85 +59,25 @@ export default function MagazineFlipBook() {
                             <p>Failed to load PDF.</p>
                         </div>
                     }
-                    className="flex justify-center"
+                    className="flex flex-col gap-6"
                 >
-                    {/* 
-                @ts-ignore: HTMLFlipBook types issue
-            */}
-                    <HTMLFlipBook
-                        width={dimensions.width}
-                        height={dimensions.height}
-                        showCover={true}
-                        onFlip={onFlip}
-                        ref={bookRef}
-                        className="magazine-book shadow-2xl"
-                        style={{ margin: '0 auto' }}
-                        startPage={0}
-                        size="fixed"
-                        minWidth={300}
-                        maxWidth={1000}
-                        minHeight={400}
-                        maxHeight={1500}
-                        drawShadow={true}
-                        flippingTime={1000}
-                        usePortrait={isMobile}
-                        startZIndex={0}
-                        autoSize={true}
-                        maxShadowOpacity={0.5}
-                        mobileScrollSupport={true}
-                        swipeDistance={30}
-                        clickEventForward={true}
-                        useMouseEvents={true}
-                        showPageCorners={true}
-                        disableFlipByClick={false}
-                        onChangeState={(e: any) => {
-                            if (e.data === 'flipping') {
-                                playFlipSound();
-                            }
-                        }}
-                    >
-                        {Array.from(new Array(numPages), (el, index) => (
-                            <div key={`page_${index + 1}`} className="bg-white overflow-hidden">
-                                <div className="w-full h-full flex items-center justify-center bg-white">
-                                    <Page
-                                        pageNumber={index + 1}
-                                        width={dimensions.width}
-                                        onLoadSuccess={index === 0 ? onPageLoadSuccess : undefined}
-                                        renderTextLayer={false}
-                                        renderAnnotationLayer={false}
-                                        className="shadow-inner"
-                                    />
-                                </div>
-                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-gray-400">
-                                    {index + 1}
-                                </div>
-                            </div>
-                        ))}
-                    </HTMLFlipBook>
+                    {Array.from(new Array(numPages), (el, index) => (
+                        <div key={`page_${index + 1}`} className="shadow-2xl">
+                            <Page
+                                pageNumber={index + 1}
+                                scale={scale}
+                                renderTextLayer={false}
+                                renderAnnotationLayer={false}
+                                className="bg-white"
+                                loading={
+                                    <div className="w-[600px] h-[800px] bg-white flex items-center justify-center text-gray-400 animate-pulse">
+                                        Loading Page {index + 1}...
+                                    </div>
+                                }
+                            />
+                        </div>
+                    ))}
                 </Document>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center gap-6 mt-10">
-                <button
-                    onClick={goToPrevPage}
-                    disabled={currentPage === 0}
-                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#1a1d23] hover:bg-gray-50 dark:hover:bg-gray-800 text-[#101618] dark:text-white rounded-full shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-700 font-bold"
-                >
-                    <span className="material-symbols-outlined">arrow_back</span>
-                    Previous
-                </button>
-                <span className="text-[#5e5f8d] dark:text-gray-400 font-medium">
-                    Page {currentPage} of {numPages}
-                </span>
-                <button
-                    onClick={goToNextPage}
-                    disabled={currentPage === numPages}
-                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#1a1d23] hover:bg-gray-50 dark:hover:bg-gray-800 text-[#101618] dark:text-white rounded-full shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-700 font-bold"
-                >
-                    Next
-                    <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
             </div>
         </div>
     );
