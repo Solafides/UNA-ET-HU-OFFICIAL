@@ -328,6 +328,7 @@ export default function AdminDashboard() {
           category: '',
           status: 'DRAFT',
           featuredImage: '',
+          orientation: 'LANDSCAPE',
         });
       } else {
         const error = await response.json();

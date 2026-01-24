@@ -243,9 +243,9 @@ export default function Navigation() {
                       {session.user?.name}
                     </span>
                     <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shadow-md cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
-                      {session.user?.image ? (
+                      {(session.user as any)?.image ? (
                         <img
-                          src={session.user.image}
+                          src={(session.user as any).image}
                           alt={session.user?.name || 'User'}
                           className="w-full h-full rounded-full object-cover"
                         />
@@ -517,9 +517,9 @@ export default function Navigation() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-white dark:bg-black/20 border border-gray-100 dark:border-gray-800">
                     <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
-                      {session.user?.image ? (
+                      {(session.user as any)?.image ? (
                         <img
-                          src={session.user.image}
+                          src={(session.user as any).image}
                           alt={session.user?.name || 'User'}
                           className="w-full h-full rounded-full object-cover"
                         />

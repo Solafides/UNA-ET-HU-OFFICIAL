@@ -3,7 +3,7 @@
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 type PostListItem = {
@@ -15,7 +15,6 @@ type PostListItem = {
   featuredImage: string | null;
   author: string;
   date: string | null;
-  likes: number;
   likes: number;
   comments: number;
   orientation?: string;
@@ -31,7 +30,7 @@ type PostsResponse = {
 
 const PAGE_SIZE = 4;
 
-export default function BlogPage() {
+function BlogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -358,5 +357,17 @@ export default function BlogPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <BlogContent />
+    </Suspense>
   );
 }
