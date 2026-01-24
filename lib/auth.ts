@@ -90,22 +90,33 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
+      // 1. Initial Sign In: Populate token with user data
       if (user) {
         token.role = (user as any).role;
         token.id = user.id;
       }
-      
-      // If signing in with Google, fetch user role from database
-      if (account?.provider === 'google' && user?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-        if (dbUser) {
-          token.role = dbUser.role;
-          token.id = dbUser.id;
+
+      // 2. Refresh Strategy:
+      // If the user is logged in (has email in token), fetch the latest role from DB.
+      // This ensures that if the ADMIN role is granted manually in Supabase, 
+      // the user doesn't need to sign out and back in to see the changes.
+      if (token.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email },
+            select: { role: true, id: true }
+          });
+
+          if (dbUser) {
+            token.role = dbUser.role;
+            // Also ensure ID is set if missing
+            if (!token.id) token.id = dbUser.id;
+          }
+        } catch (error) {
+          console.error("Failed to refresh user role from DB:", error);
         }
       }
-      
+
       return token;
     },
     async session({ session, token }) {
