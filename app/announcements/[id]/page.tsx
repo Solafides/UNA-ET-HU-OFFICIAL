@@ -70,11 +70,32 @@ export default async function AnnouncementPage({
 
                         <div className="prose prose-lg dark:prose-invert max-w-none text-[#5e5f8d] dark:text-gray-300">
                             {/* Simple line break handling since rich text isn't implemented yet */}
-                            {post.content?.split('\n').map((paragraph, idx) => (
-                                <p key={idx} className="mb-4 leading-relaxed">
-                                    {paragraph}
-                                </p>
-                            ))}
+                            {post.content?.split('\n').map((paragraph, idx) => {
+                                // Regex to find URLs
+                                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                const parts = paragraph.split(urlRegex);
+
+                                return (
+                                    <p key={idx} className="mb-4 leading-relaxed">
+                                        {parts.map((part, i) => {
+                                            if (part.match(urlRegex)) {
+                                                return (
+                                                    <a
+                                                        key={i}
+                                                        href={part}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary hover:underline break-words"
+                                                    >
+                                                        {part}
+                                                    </a>
+                                                );
+                                            }
+                                            return part;
+                                        })}
+                                    </p>
+                                );
+                            })}
                         </div>
                     </div>
                 </article>
