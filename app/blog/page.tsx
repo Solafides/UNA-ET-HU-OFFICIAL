@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
@@ -16,7 +16,9 @@ type PostListItem = {
   author: string;
   date: string | null;
   likes: number;
+  likes: number;
   comments: number;
+  orientation?: string;
 };
 
 type PostsResponse = {
@@ -27,7 +29,7 @@ type PostsResponse = {
   totalPages: number;
 };
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 4;
 
 export default function BlogPage() {
   const searchParams = useSearchParams();
@@ -133,11 +135,10 @@ export default function BlogPage() {
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryClick(cat.id)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                    category === cat.id
-                      ? 'bg-primary text-white'
-                      : 'bg-[#f7f9fb] dark:bg-[#2d3238] hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-700 dark:text-slate-200'
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${category === cat.id
+                    ? 'bg-primary text-white'
+                    : 'bg-[#f7f9fb] dark:bg-[#2d3238] hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-700 dark:text-slate-200'
+                    }`}
                 >
                   {cat.label}
                 </button>
@@ -188,17 +189,17 @@ export default function BlogPage() {
               <section className="mb-12">
                 <Link
                   href={`/blog/${featured.slug}`}
-                  className="group block relative bg-[#f7f9fb] dark:bg-[#2d3238] rounded-xl overflow-hidden shadow-sm flex flex-col lg:flex-row min-h-[420px] hover:shadow-xl transition-shadow"
+                  className={`group block relative bg-[#f7f9fb] dark:bg-[#2d3238] rounded-xl overflow-hidden shadow-sm flex flex-col ${featured.orientation === 'PORTRAIT' ? 'lg:flex-row-reverse' : 'lg:flex-row'
+                    } min-h-[420px] hover:shadow-xl transition-shadow`}
                 >
-                  <div className="lg:w-3/5 relative overflow-hidden">
+                  <div className={`lg:w-3/5 relative overflow-hidden ${featured.orientation === 'PORTRAIT' ? 'aspect-square lg:h-auto lg:w-1/3' : ''}`}>
                     <div className="absolute inset-0 bg-primary/10 mix-blend-multiply transition-opacity group-hover:opacity-0" />
                     <div
-                      className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-105"
+                      className={`w-full h-full bg-center ${featured.orientation === 'PORTRAIT' ? 'bg-contain bg-no-repeat bg-slate-100 dark:bg-slate-900' : 'bg-cover'} transition-transform duration-700 group-hover:scale-105`}
                       style={{
-                        backgroundImage: `url("${
-                          featured.featuredImage ||
+                        backgroundImage: `url("${featured.featuredImage ||
                           'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=800&fit=crop'
-                        }")`,
+                          }")`,
                       }}
                     />
                   </div>
@@ -217,7 +218,7 @@ export default function BlogPage() {
                       {featured.title}
                     </h2>
                     {featured.excerpt && (
-                      <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed line-clamp-3">
+                      <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed line-clamp-3 md:line-clamp-4 lg:line-clamp-6">
                         {featured.excerpt}
                       </p>
                     )}
@@ -266,12 +267,12 @@ export default function BlogPage() {
                     className="group bg-white dark:bg-[#2d3238] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 flex flex-col hover:shadow-xl transition-shadow"
                   >
                     <div
-                      className="aspect-video bg-cover bg-center group-hover:scale-[1.03] transition-transform duration-500"
+                      className={`w-full ${post.orientation === 'PORTRAIT' ? 'aspect-square bg-contain bg-no-repeat bg-slate-100 dark:bg-slate-900' : 'aspect-video bg-cover'
+                        } bg-center group-hover:scale-[1.03] transition-transform duration-500`}
                       style={{
-                        backgroundImage: `url("${
-                          post.featuredImage ||
+                        backgroundImage: `url("${post.featuredImage ||
                           'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop'
-                        }")`,
+                          }")`,
                       }}
                     />
                     <div className="p-6 flex flex-col grow">
@@ -290,7 +291,7 @@ export default function BlogPage() {
                         {post.title}
                       </h3>
                       {post.excerpt && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-4 lg:line-clamp-6 mb-4">
                           {post.excerpt}
                         </p>
                       )}

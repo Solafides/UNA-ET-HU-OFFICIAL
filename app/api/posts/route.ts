@@ -40,24 +40,24 @@ export async function GET(request: NextRequest) {
     const [total, posts] = await Promise.all([
       prisma.blogPost.count({ where }),
       prisma.blogPost.findMany({
-      where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
           },
+          likes: true,
+          comments: true,
         },
-        likes: true,
-        comments: true,
-      },
-      orderBy: {
-        publishedAt: 'desc',
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
+        orderBy: {
+          publishedAt: 'desc',
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
     ]);
 
     const items = posts.map((post) => ({
@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
       author: post.author.fullName,
       authorId: post.authorId,
       date: post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : null,
+      orientation: post.orientation,
       createdAt: post.createdAt,
       likes: post.likes.length,
       comments: post.comments.length,
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, excerpt, content, category, status, featuredImage } = body;
+    const { title, excerpt, content, category, status, featuredImage, orientation } = body;
 
     if (!title || !content || !category) {
       return NextResponse.json(
@@ -135,6 +136,7 @@ export async function POST(request: NextRequest) {
         category,
         status: status || 'DRAFT',
         featuredImage: featuredImage || null,
+        orientation: orientation || 'LANDSCAPE',
         authorId: (session.user as any).id,
         publishedAt: status === 'PUBLISHED' ? new Date() : null,
       },

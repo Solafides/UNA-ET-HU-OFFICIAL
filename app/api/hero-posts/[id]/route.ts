@@ -19,7 +19,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { title, content, image, isActive } = await request.json();
+        const { title, content, image, isActive, orientation } = await request.json();
 
         const post = await prisma.heroPost.update({
             where: { id },
@@ -28,6 +28,7 @@ export async function PUT(
                 content,
                 image,
                 isActive,
+                orientation,
             },
         });
 

@@ -57,7 +57,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, excerpt, content, category, status, featuredImage } = body;
+    const { title, excerpt, content, category, status, featuredImage, orientation } = body;
 
     const existingPost = await prisma.blogPost.findUnique({
       where: { id },
@@ -95,6 +95,7 @@ export async function PUT(
     if (category) updateData.category = category;
     if (status) updateData.status = status;
     if (featuredImage !== undefined) updateData.featuredImage = featuredImage;
+    if (orientation) updateData.orientation = orientation;
 
     if (status === 'PUBLISHED' && !existingPost.publishedAt) {
       updateData.publishedAt = new Date();

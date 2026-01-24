@@ -47,7 +47,24 @@ export default function MagazineFlipBook() {
     };
 
     // Calculate dynamic dimensions based on window size
-    const [dimensions, setDimensions] = useState({ width: 400, height: 565 });
+    const [dimensions, setDimensions] = useState({ width: 600, height: 848 });
+    const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(1.414); // Default to A4
+
+    const onPageLoadSuccess = (page: any) => {
+        // Safely get viewport dimensions
+        try {
+            const viewport = page.getViewport({ scale: 1 });
+            if (viewport.width && viewport.height) {
+                const ratio = viewport.height / viewport.width;
+                if (!isNaN(ratio) && ratio > 0) {
+                    setPdfAspectRatio(ratio);
+                }
+            }
+        } catch (e) {
+            console.error("Failed to calculate aspect ratio", e);
+        }
+    };
+
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -58,16 +75,31 @@ export default function MagazineFlipBook() {
 
             if (mobile) {
                 // Mobile: Single page, larger width
-                const availableWidth = Math.min(width * 0.95, 600);
-                const pageHeight = availableWidth * 1.414;
+                let availableWidth = Math.min(width * 0.95, 600);
+                let pageHeight = availableWidth * pdfAspectRatio;
+
+                // Height constraint (e.g., max 80vh to verify visibility)
+                const maxHeight = window.innerHeight * 0.8;
+                if (pageHeight > maxHeight) {
+                    pageHeight = maxHeight;
+                    availableWidth = pageHeight / pdfAspectRatio;
+                }
+
                 setDimensions({ width: availableWidth, height: pageHeight });
             } else {
                 // Desktop: Double page spread
-                // Total width for spread = 80% to 90% of screen, max 1200px
-                // Page width = Total width / 2
-                const availableWidth = Math.min(width * 0.9, 1400);
-                const pageWidth = availableWidth / 2;
-                const pageHeight = pageWidth * 1.414;
+                // Total width for spread = 95% of screen, max 1600px
+                let availableWidth = Math.min(width * 0.95, 1600);
+                let pageWidth = availableWidth / 2;
+                let pageHeight = pageWidth * pdfAspectRatio;
+
+                // Height constraint
+                const maxHeight = window.innerHeight * 0.85; // Leave space for nav/controls
+                if (pageHeight > maxHeight) {
+                    pageHeight = maxHeight;
+                    pageWidth = pageHeight / pdfAspectRatio;
+                }
+
                 setDimensions({ width: pageWidth, height: pageHeight });
             }
         };

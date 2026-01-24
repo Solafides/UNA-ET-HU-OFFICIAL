@@ -43,6 +43,7 @@ model BlogPost {
   content       String    @db.Text
   featuredImage String?   @map("featured_image")
   category      String
+  orientation   String     @default("LANDSCAPE") // "LANDSCAPE" or "PORTRAIT"
   status        PostStatus @default(DRAFT)
   authorId      String    @map("author_id")
   publishedAt   DateTime? @map("published_at")
@@ -195,6 +196,7 @@ model HeroPost {
   title     String
   content   String?  @db.Text
   image     String?
+  orientation String   @default("LANDSCAPE") // "LANDSCAPE" or "PORTRAIT"
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

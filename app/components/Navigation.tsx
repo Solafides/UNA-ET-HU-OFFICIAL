@@ -355,7 +355,7 @@ export default function Navigation() {
         {/* Mobile Drawer & Backdrop */}
         {/* Backdrop */}
         <div
-          className={`fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`fixed inset-0 z-[9990] bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           onClick={() => setIsMenuOpen(false)}
           aria-hidden="true"
@@ -363,7 +363,7 @@ export default function Navigation() {
 
         {/* Drawer Panel */}
         <div
-          className={`fixed top-0 z-[70] h-[100dvh] w-[280px] bg-white dark:bg-[#1a1d23] shadow-2xl transition-[right] duration-300 ease-in-out lg:hidden ${isMenuOpen ? 'right-0' : '-right-[280px]'
+          className={`fixed top-0 z-[9999] h-[100dvh] w-[280px] bg-white dark:bg-[#1a1d23] shadow-2xl transition-[right] duration-300 ease-in-out lg:hidden ${isMenuOpen ? 'right-0' : '-right-[280px]'
             }`}
         >
           <div className="flex flex-col h-full">

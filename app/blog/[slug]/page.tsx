@@ -16,6 +16,7 @@ type PostDetail = {
   content: string;
   category: string;
   featuredImage: string | null;
+  orientation?: string;
   publishedAt: string | null;
   author: {
     id: string;
@@ -341,10 +342,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
             {/* Featured Image */}
             {post.featuredImage && (
-              <div className="relative w-full aspect-[16/9] mb-12 rounded-2xl overflow-hidden shadow-sm group">
+              <div className={`relative w-full ${post.orientation === 'PORTRAIT' ? 'aspect-[3/4] max-w-2xl mx-auto' : 'aspect-[16/9]'} mb-12 rounded-2xl overflow-hidden shadow-sm group`}>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10 opacity-60" />
                 <div
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 bg-cover bg-center"
+                  className={`w-full h-full ${post.orientation === 'PORTRAIT' ? 'object-contain bg-slate-100 dark:bg-slate-900' : 'object-cover'} transition-transform duration-700 group-hover:scale-105 bg-cover bg-center`}
                   style={{
                     backgroundImage: `url("${post.featuredImage}")`,
                   }}

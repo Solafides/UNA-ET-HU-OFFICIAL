@@ -219,7 +219,7 @@ export default async function Home() {
                     </span>
                   </div>
                   <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full bg-contain bg-center bg-no-repeat bg-slate-100 dark:bg-slate-800 group-hover:scale-105 transition-transform duration-500"
                     style={{
                       backgroundImage:
                         'url("https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=600&fit=crop")',
@@ -252,7 +252,7 @@ export default async function Home() {
                     </span>
                   </div>
                   <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full bg-contain bg-center bg-no-repeat bg-slate-100 dark:bg-slate-800 group-hover:scale-105 transition-transform duration-500"
                     style={{
                       backgroundImage:
                         'url("https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop")',
@@ -285,7 +285,7 @@ export default async function Home() {
                     </span>
                   </div>
                   <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full bg-contain bg-center bg-no-repeat bg-slate-100 dark:bg-slate-800 group-hover:scale-105 transition-transform duration-500"
                     style={{
                       backgroundImage:
                         'url("https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop")',

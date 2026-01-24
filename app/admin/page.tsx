@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Navigation from '../components/Navigation';
+import { ImageUpload } from '../components/ImageUpload';
 
 interface Post {
   id: string;
@@ -65,6 +66,7 @@ export default function AdminDashboard() {
     category: '',
     status: 'DRAFT',
     featuredImage: '',
+    orientation: 'LANDSCAPE',
   });
 
   const [heroFormData, setHeroFormData] = useState({
@@ -72,6 +74,7 @@ export default function AdminDashboard() {
     content: '',
     image: '',
     isActive: true,
+    orientation: 'LANDSCAPE',
   });
 
   useEffect(() => {
@@ -163,6 +166,7 @@ export default function AdminDashboard() {
       category: '',
       status: 'DRAFT',
       featuredImage: '',
+      orientation: 'LANDSCAPE',
     });
     setShowModal(true);
   };
@@ -174,6 +178,7 @@ export default function AdminDashboard() {
       content: '',
       image: '',
       isActive: true,
+      orientation: 'LANDSCAPE',
     });
     setShowHeroModal(true);
   };
@@ -190,6 +195,7 @@ export default function AdminDashboard() {
           category: data.category,
           status: data.status,
           featuredImage: data.featuredImage || '',
+          orientation: data.orientation || 'LANDSCAPE',
         });
         setShowModal(true);
       });
@@ -202,6 +208,7 @@ export default function AdminDashboard() {
       content: post.content || '',
       image: post.image || '',
       isActive: post.isActive,
+      orientation: (post as any).orientation || 'LANDSCAPE', // Type cast if interface not updated yet
     });
     setShowHeroModal(true);
   };
@@ -419,7 +426,7 @@ export default function AdminDashboard() {
     <div className="flex flex-col min-h-screen bg-[#f5f5f8] dark:bg-[#0f0f23] text-[#101018] dark:text-white transition-colors duration-200">
       <Navigation />
 
-      <div className="bg-white dark:bg-[#1a1a2e] border-b border-[#dadae7] dark:border-gray-800 shadow-sm sticky top-16 z-[60]">
+      <div className="bg-white dark:bg-[#1a1a2e] border-b border-[#dadae7] dark:border-gray-800 shadow-sm sticky top-16 z-30">
         <div className="mx-auto max-w-[1200px] px-4 md:px-8">
           <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar" aria-label="Dashboard Navigation">
             <button
@@ -842,7 +849,7 @@ export default function AdminDashboard() {
 
       {/* Modal for Create/Edit */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-[#101018] dark:text-white">
@@ -932,13 +939,26 @@ export default function AdminDashboard() {
 
               <div>
                 <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Featured Image URL
+                  Orientation
                 </label>
-                <input
-                  type="url"
-                  value={formData.featuredImage}
-                  onChange={(e) => setFormData({ ...formData, featuredImage: e.target.value })}
+                <select
+                  value={(formData as any).orientation}
+                  onChange={(e) => setFormData({ ...formData, orientation: e.target.value } as any)}
                   className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="LANDSCAPE">Landscape (Standard)</option>
+                  <option value="PORTRAIT">Portrait (Tall)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                  Featured Image
+                </label>
+                <ImageUpload
+                  value={formData.featuredImage}
+                  onChange={(url) => setFormData({ ...formData, featuredImage: url })}
+                  orientation={(formData as any).orientation || 'LANDSCAPE'}
                 />
               </div>
 
@@ -964,7 +984,7 @@ export default function AdminDashboard() {
 
       {/* Modal for Hero Announcements */}
       {showHeroModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-[#101018] dark:text-white">
@@ -1006,13 +1026,26 @@ export default function AdminDashboard() {
 
               <div>
                 <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Image URL
+                  Orientation
                 </label>
-                <input
-                  type="url"
-                  value={heroFormData.image}
-                  onChange={(e) => setHeroFormData({ ...heroFormData, image: e.target.value })}
+                <select
+                  value={(heroFormData as any).orientation}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, orientation: e.target.value } as any)}
                   className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="LANDSCAPE">Landscape (Standard)</option>
+                  <option value="PORTRAIT">Portrait (Tall)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                  Announcement Image
+                </label>
+                <ImageUpload
+                  value={heroFormData.image}
+                  onChange={(url) => setHeroFormData({ ...heroFormData, image: url })}
+                  orientation={(heroFormData as any).orientation || 'LANDSCAPE'}
                 />
               </div>
 

@@ -57,6 +57,7 @@ export async function GET(
       content: post.content,
       category: post.category,
       featuredImage: post.featuredImage,
+      orientation: post.orientation,
       status: post.status,
       publishedAt: post.publishedAt,
       createdAt: post.createdAt,

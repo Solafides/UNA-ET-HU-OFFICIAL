@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'open-sdg.github.io',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
       }
     ],
   },
