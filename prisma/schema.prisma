@@ -63,29 +63,36 @@ enum PostStatus {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  postId    String   @map("post_id")
-  authorId  String   @map("author_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String    @id @default(cuid())
+  content   String    @db.Text
+  postId    String    @map("post_id")
+  authorId  String    @map("author_id")
+  parentId  String?   @map("parent_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      BlogPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  likes     Like[]
 
   @@map("comments")
 }
 
 model Like {
   id        String   @id @default(cuid())
-  postId    String   @map("post_id")
+  postId    String?  @map("post_id")
+  commentId String?  @map("comment_id")
   userId    String   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      BlogPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment   Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
+  @@unique([commentId, userId])
   @@map("likes")
 }
 
