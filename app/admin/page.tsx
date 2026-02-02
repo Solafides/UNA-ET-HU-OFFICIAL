@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Navigation from '../components/Navigation';
 import { ImageUpload } from '../components/ImageUpload';
+import { PdfUpload } from '../components/PdfUpload';
 
 interface Post {
   id: string;
@@ -29,6 +30,15 @@ interface HeroPost {
   createdAt: string;
 }
 
+interface Magazine {
+  id: string;
+  title: string;
+  description: string | null;
+  coverImage: string | null;
+  embedCode: string;
+  publishedAt: string;
+}
+
 interface User {
   id: string;
   fullName: string;
@@ -49,11 +59,12 @@ export default function AdminDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [heroPosts, setHeroPosts] = useState<HeroPost[]>([]);
+  const [magazines, setMagazines] = useState<Magazine[]>([]);
 
   // Delete Confirmation State
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
-    type: 'post' | 'hero' | null;
+    type: 'post' | 'hero' | 'magazine' | null;
     id: string | null;
   }>({
     isOpen: false,
@@ -64,12 +75,14 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showHeroModal, setShowHeroModal] = useState(false);
+  const [showMagazineModal, setShowMagazineModal] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [editingHeroPost, setEditingHeroPost] = useState<HeroPost | null>(null);
+  const [editingMagazine, setEditingMagazine] = useState<Magazine | null>(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [activeTab, setActiveTab] = useState<'blog' | 'users' | 'hero'>('blog');
+  const [activeTab, setActiveTab] = useState<'blog' | 'users' | 'hero' | 'magazines'>('blog');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -89,6 +102,14 @@ export default function AdminDashboard() {
     orientation: 'LANDSCAPE',
   });
 
+  const [magazineFormData, setMagazineFormData] = useState({
+    title: '',
+    description: '',
+    coverImage: '',
+    embedCode: '',
+    pdfUrl: '',
+  });
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
@@ -103,6 +124,8 @@ export default function AdminDashboard() {
         fetchUsers();
       } else if (activeTab === 'hero') {
         fetchHeroPosts();
+      } else if (activeTab === 'magazines') {
+        fetchMagazines();
       }
     }
   }, [session, search, categoryFilter, statusFilter, activeTab]);
@@ -169,6 +192,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchMagazines = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/magazines');
+      if (response.ok) {
+        const data = await response.json();
+        setMagazines(data);
+      } else {
+        toast.error('Failed to fetch magazines');
+      }
+    } catch (error) {
+      console.error('Error fetching magazines:', error);
+      toast.error('Error loading magazines');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreate = () => {
     setEditingPost(null);
     setFormData({
@@ -225,6 +266,30 @@ export default function AdminDashboard() {
     setShowHeroModal(true);
   };
 
+  const handleCreateMagazine = () => {
+    setEditingMagazine(null);
+    setMagazineFormData({
+      title: '',
+      description: '',
+      coverImage: '',
+      embedCode: '',
+      pdfUrl: '',
+    });
+    setShowMagazineModal(true);
+  };
+
+  const handleEditMagazine = (magazine: Magazine) => {
+    setEditingMagazine(magazine);
+    setMagazineFormData({
+      title: magazine.title,
+      description: magazine.description || '',
+      coverImage: magazine.coverImage || '',
+      embedCode: magazine.embedCode,
+      pdfUrl: (magazine as any).pdfUrl || '', // Type cast if interface not updated yet
+    });
+    setShowMagazineModal(true);
+  };
+
   const handleDelete = async (id: string) => {
     setDeleteConfirmation({ isOpen: true, type: 'post', id });
   };
@@ -278,6 +343,35 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error deleting hero post:', error);
       toast.error('Error deleting announcement', { id: loadingToast });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, type: null, id: null });
+    }
+  };
+
+  const handleDeleteMagazine = async (id: string) => {
+    setDeleteConfirmation({ isOpen: true, type: 'magazine', id });
+  };
+
+  const confirmDeleteMagazine = async () => {
+    const id = deleteConfirmation.id;
+    if (!id) return;
+
+    const loadingToast = toast.loading('Deleting magazine...');
+
+    try {
+      const response = await fetch(`/api/magazines/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Magazine deleted successfully', { id: loadingToast });
+        fetchMagazines();
+      } else {
+        toast.error('Failed to delete magazine', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Error deleting magazine:', error);
+      toast.error('Error deleting magazine', { id: loadingToast });
     } finally {
       setDeleteConfirmation({ isOpen: false, type: null, id: null });
     }
@@ -394,6 +488,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleMagazineSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const loadingToast = toast.loading(editingMagazine ? 'Updating magazine...' : 'Creating magazine...');
+
+    try {
+      const url = editingMagazine ? `/api/magazines/${editingMagazine.id}` : '/api/magazines';
+      const method = editingMagazine ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(magazineFormData),
+      });
+
+      if (response.ok) {
+        toast.success(editingMagazine ? 'Magazine updated!' : 'Magazine created!', { id: loadingToast });
+        setShowMagazineModal(false);
+        fetchMagazines();
+      } else {
+        toast.error('Failed to save magazine', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Error saving magazine:', error);
+      toast.error('Error saving magazine', { id: loadingToast });
+    }
+  };
+
   const handleDeleteUser = async (id: string) => {
     if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     const loadingToast = toast.loading('Deleting user...');
@@ -476,6 +597,16 @@ export default function AdminDashboard() {
             >
               <span className="material-symbols-outlined text-[20px]">campaign</span>
               Announcements
+            </button>
+            <button
+              onClick={() => setActiveTab('magazines')}
+              className={`flex items-center gap-2 px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'magazines'
+                ? 'border-primary text-primary dark:text-blue-400'
+                : 'border-transparent text-[#5e5f8d] dark:text-gray-400 hover:text-[#101018] dark:hover:text-white hover:border-gray-300'
+                }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">menu_book</span>
+              Magazines
             </button>
             {(session.user as any).role === 'SUPER_ADMIN' && (
               <button
@@ -752,6 +883,91 @@ export default function AdminDashboard() {
             </>
           )}
 
+
+
+          {activeTab === 'magazines' && (
+            <>
+              <header className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-[#101018] dark:text-white text-3xl font-bold tracking-tight">
+                    Magazine Management
+                  </h2>
+                  <p className="text-[#5e5f8d] dark:text-gray-400 mt-1 text-sm">
+                    Manage digital magazine issues and flipbooks.
+                  </p>
+                </div>
+                <button
+                  onClick={handleCreateMagazine}
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 transition-colors"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[20px]">add</span>
+                  Add New Magazine
+                </button>
+              </header>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {magazines.length === 0 ? (
+                  <div className="col-span-full py-12 text-center text-[#5e5f8d] dark:text-gray-400 bg-white dark:bg-[#1a1a2e] rounded-xl border border-[#dadae7] dark:border-gray-700">
+                    No magazines found. Create one to get started.
+                  </div>
+                ) : (
+                  magazines.map((magazine) => (
+                    <div
+                      key={magazine.id}
+                      className="group relative bg-white dark:bg-[#1a1a2e] rounded-xl border border-[#dadae7] dark:border-gray-700 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                    >
+                      {magazine.coverImage ? (
+                        <div className="w-full h-48 bg-slate-100 dark:bg-black/20 overflow-hidden relative">
+                          <img src={magazine.coverImage} alt={magazine.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 bg-slate-100 dark:bg-[#252538] flex items-center justify-center text-slate-400">
+                          <span className="material-symbols-outlined text-[48px]">menu_book</span>
+                        </div>
+                      )}
+
+                      <div className="p-5 flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight line-clamp-1">
+                            {magazine.title}
+                          </h3>
+                        </div>
+
+                        {magazine.description && (
+                          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                            {magazine.description}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="text-xs text-slate-400">
+                            {new Date(magazine.publishedAt).toLocaleDateString()}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditMagazine(magazine)}
+                              className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <span className="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMagazine(magazine.id)}
+                              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <span className="material-symbols-outlined text-[20px]">delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+
           {activeTab === 'users' && (
             <>
               <header className="flex flex-wrap items-center justify-between gap-4">
@@ -873,243 +1089,386 @@ export default function AdminDashboard() {
           )}
 
         </div>
-      </main>
+      </main >
 
       {/* Modal for Create/Edit */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#101018] dark:text-white">
-                {editingPost ? 'Edit Post' : 'Create New Post'}
-              </h3>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-[#5e5f8d] dark:text-gray-400 hover:text-[#101018] dark:hover:text-white"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Excerpt
-                </label>
-                <textarea
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  rows={2}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Content *
-                </label>
-                <textarea
-                  required
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={10}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                    Category *
-                  </label>
-                  <select
-                    required
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="">Select category</option>
-                    <option value="Diplomacy">Diplomacy</option>
-                    <option value="SDG">SDG Goals</option>
-                    <option value="Youth & Education">Youth & Education</option>
-                    <option value="Climate Action">Climate Action</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                    Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="PUBLISHED">Published</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Orientation
-                </label>
-                <select
-                  value={(formData as any).orientation}
-                  onChange={(e) => setFormData({ ...formData, orientation: e.target.value } as any)}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="LANDSCAPE">Landscape (Standard)</option>
-                  <option value="PORTRAIT">Portrait (Tall)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Featured Image
-                </label>
-                <ImageUpload
-                  value={formData.featuredImage}
-                  onChange={(url) => setFormData({ ...formData, featuredImage: url })}
-                  orientation={(formData as any).orientation || 'LANDSCAPE'}
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
+      {
+        showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-[#101018] dark:text-white">
+                  {editingPost ? 'Edit Post' : 'Create New Post'}
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm font-semibold text-[#5e5f8d] dark:text-gray-400 hover:bg-[#f0f0f5] dark:hover:bg-white/5 rounded-lg transition-colors"
+                  className="text-[#5e5f8d] dark:text-gray-400 hover:text-[#101018] dark:hover:text-white"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
-                >
-                  {editingPost ? 'Update Post' : 'Create Post'}
+                  <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Excerpt
+                  </label>
+                  <textarea
+                    value={formData.excerpt}
+                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                    rows={2}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Content *
+                  </label>
+                  <textarea
+                    required
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    rows={10}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                      Category *
+                    </label>
+                    <select
+                      required
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">Select category</option>
+                      <option value="Diplomacy">Diplomacy</option>
+                      <option value="SDG">SDG Goals</option>
+                      <option value="Youth & Education">Youth & Education</option>
+                      <option value="Climate Action">Climate Action</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="DRAFT">Draft</option>
+                      <option value="PUBLISHED">Published</option>
+                      <option value="ARCHIVED">Archived</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Orientation
+                  </label>
+                  <select
+                    value={(formData as any).orientation}
+                    onChange={(e) => setFormData({ ...formData, orientation: e.target.value } as any)}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="LANDSCAPE">Landscape (Standard)</option>
+                    <option value="PORTRAIT">Portrait (Tall)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Featured Image
+                  </label>
+                  <ImageUpload
+                    value={formData.featuredImage}
+                    onChange={(url) => setFormData({ ...formData, featuredImage: url })}
+                    orientation={(formData as any).orientation || 'LANDSCAPE'}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 text-sm font-semibold text-[#5e5f8d] dark:text-gray-400 hover:bg-[#f0f0f5] dark:hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                  >
+                    {editingPost ? 'Update Post' : 'Create Post'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Modal for Hero Announcements */}
-      {showHeroModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#101018] dark:text-white">
-                {editingHeroPost ? 'Edit Announcement' : 'Create Announcement'}
-              </h3>
-              <button
-                onClick={() => setShowHeroModal(false)}
-                className="text-[#5e5f8d] dark:text-gray-400 hover:text-[#101018] dark:hover:text-white"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleHeroSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={heroFormData.title}
-                  onChange={(e) => setHeroFormData({ ...heroFormData, title: e.target.value })}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Content
-                </label>
-                <textarea
-                  value={heroFormData.content}
-                  onChange={(e) => setHeroFormData({ ...heroFormData, content: e.target.value })}
-                  rows={4}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Orientation
-                </label>
-                <select
-                  value={(heroFormData as any).orientation}
-                  onChange={(e) => setHeroFormData({ ...heroFormData, orientation: e.target.value } as any)}
-                  className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="LANDSCAPE">Landscape (Standard)</option>
-                  <option value="PORTRAIT">Portrait (Tall)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
-                  Announcement Image
-                </label>
-                <ImageUpload
-                  value={heroFormData.image}
-                  onChange={(url) => setHeroFormData({ ...heroFormData, image: url })}
-                  orientation={(heroFormData as any).orientation || 'LANDSCAPE'}
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={heroFormData.isActive}
-                    onChange={(e) => setHeroFormData({ ...heroFormData, isActive: e.target.checked })}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm font-medium text-[#101018] dark:text-white">
-                    Active (Visible on homepage)
-                  </span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
+      {
+        showHeroModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-[#101018] dark:text-white">
+                  {editingHeroPost ? 'Edit Announcement' : 'Create Announcement'}
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setShowHeroModal(false)}
+                  className="text-[#5e5f8d] dark:text-gray-400 hover:text-[#101018] dark:hover:text-white"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <form onSubmit={handleHeroSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={heroFormData.title}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, title: e.target.value })}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Content
+                  </label>
+                  <textarea
+                    value={heroFormData.content}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, content: e.target.value })}
+                    rows={4}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Orientation
+                  </label>
+                  <select
+                    value={(heroFormData as any).orientation}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, orientation: e.target.value } as any)}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="LANDSCAPE">Landscape (Standard)</option>
+                    <option value="PORTRAIT">Portrait (Tall)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Announcement Image
+                  </label>
+                  <ImageUpload
+                    value={heroFormData.image}
+                    onChange={(url) => setHeroFormData({ ...heroFormData, image: url })}
+                    orientation={(heroFormData as any).orientation || 'LANDSCAPE'}
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={heroFormData.isActive}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, isActive: e.target.checked })}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium text-[#101018] dark:text-white">
+                      Active (Visible on homepage)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowHeroModal(false)}
+                    className="px-4 py-2 text-sm font-semibold text-[#5e5f8d] dark:text-gray-400 hover:bg-[#f0f0f5] dark:hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                  >
+                    {editingHeroPost ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+      {/* Modal for Magazine */}
+      {
+        showMagazineModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-[#101018] dark:text-white">
+                  {editingMagazine ? 'Edit Magazine' : 'Add New Magazine'}
+                </h3>
+                <button
+                  onClick={() => setShowMagazineModal(false)}
+                  className="text-[#5e5f8d] dark:text-gray-400 hover:text-[#101018] dark:hover:text-white"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <form onSubmit={handleMagazineSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={magazineFormData.title}
+                    onChange={(e) => setMagazineFormData({ ...magazineFormData, title: e.target.value })}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Description
+                  </label>
+                  <textarea
+                    value={magazineFormData.description}
+                    onChange={(e) => setMagazineFormData({ ...magazineFormData, description: e.target.value })}
+                    rows={3}
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Embed Code *
+                  </label>
+                  <div className="mb-2 text-xs text-[#5e5f8d] dark:text-gray-400">
+                    Paste the full iframe embed code provided by the flipbook service.
+                  </div>
+                  <textarea
+                    required
+                    value={magazineFormData.embedCode}
+                    onChange={(e) => setMagazineFormData({ ...magazineFormData, embedCode: e.target.value })}
+                    rows={5}
+                    placeholder='<iframe ... ></iframe>'
+                    className="w-full rounded-lg border border-[#dadae7] dark:border-gray-700 bg-[#f5f5f8] dark:bg-black/20 px-4 py-2 text-sm font-mono text-[#101018] dark:text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    PDF Document (Optional)
+                  </label>
+                  <PdfUpload
+                    value={magazineFormData.pdfUrl}
+                    onChange={(url) => setMagazineFormData({ ...magazineFormData, pdfUrl: url })}
+                  />
+                  <p className="text-xs text-[#5e5f8d] dark:text-gray-400 mt-1">
+                    Upload a PDF version of the magazine for users to download or view directly.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-[#101018] dark:text-white">
+                    Cover Image
+                  </label>
+                  <ImageUpload
+                    value={magazineFormData.coverImage}
+                    onChange={(url) => setMagazineFormData({ ...magazineFormData, coverImage: url })}
+                    orientation="PORTRAIT"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowMagazineModal(false)}
+                    className="px-4 py-2 text-sm font-semibold text-[#5e5f8d] dark:text-gray-400 hover:bg-[#f0f0f5] dark:hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                  >
+                    {editingMagazine ? 'Update Magazine' : 'Create Magazine'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Delete Confirmation Modal */}
+      {
+        deleteConfirmation.isOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-xl max-w-sm w-full p-6 shadow-xl border border-gray-100 dark:border-gray-800">
+              <h3 className="text-lg font-bold text-[#101018] dark:text-white mb-2">
+                Confirm Delete
+              </h3>
+              <p className="text-[#5e5f8d] dark:text-gray-400 text-sm mb-6">
+                Are you sure you want to delete this {deleteConfirmation.type}? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteConfirmation({ isOpen: false, type: null, id: null })}
                   className="px-4 py-2 text-sm font-semibold text-[#5e5f8d] dark:text-gray-400 hover:bg-[#f0f0f5] dark:hover:bg-white/5 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                  onClick={() => {
+                    if (deleteConfirmation.type === 'post') confirmDeletePost();
+                    else if (deleteConfirmation.type === 'hero') confirmDeleteHero();
+                    else if (deleteConfirmation.type === 'magazine') confirmDeleteMagazine();
+                  }}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
                 >
-                  {editingHeroPost ? 'Update' : 'Create'}
+                  Delete
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+    </div >
   );
 }

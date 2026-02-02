@@ -1,27 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { Upload, X, Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import { Upload, X, Loader2, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-interface ImageUploadProps {
+interface PdfUploadProps {
     value: string;
     onChange: (url: string) => void;
     disabled?: boolean;
     bucketName?: string;
-    orientation?: string;
 }
 
-export const ImageUpload = ({
+export const PdfUpload = ({
     value,
     onChange,
     disabled,
     bucketName = 'uploads',
-    orientation = 'LANDSCAPE'
-}: ImageUploadProps) => {
+}: PdfUploadProps) => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadMode, setUploadMode] = useState<'FILE' | 'URL'>('FILE');
     const [urlInput, setUrlInput] = useState('');
@@ -32,6 +29,11 @@ export const ImageUpload = ({
         }
 
         const file = e.target.files[0];
+        if (file.type !== 'application/pdf') {
+            toast.error('Please upload a PDF file');
+            return;
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -54,10 +56,10 @@ export const ImageUpload = ({
                 .getPublicUrl(filePath);
 
             onChange(publicUrl);
-            toast.success('Image uploaded successfully');
+            toast.success('PDF uploaded successfully');
         } catch (error: any) {
-            console.error('Error uploading image:', error);
-            toast.error('Failed to upload image', error.message);
+            console.error('Error uploading pdf:', error);
+            toast.error('Failed to upload PDF', error.message);
         } finally {
             setIsUploading(false);
         }
@@ -71,7 +73,6 @@ export const ImageUpload = ({
     const onRemove = () => {
         onChange('');
         setUrlInput('');
-        setImageError(false);
     };
 
     const handleUrlBlur = () => {
@@ -87,66 +88,41 @@ export const ImageUpload = ({
         }
     };
 
-    const [imageError, setImageError] = useState(false);
-
-    // Reset error when value changes
-    if (value && imageError && value !== urlInput) { // simplistic check
-        // actually better to use useEffect
-    }
-
-    // We need useEffect to reset error state when value changes
-    useState(() => {
-        setImageError(false);
-    }); // This is not correct for effect. Use useEffect.
-
     return (
         <div className="mb-4 flex flex-col gap-4">
             <div className="flex items-center gap-4">
-                {value && !imageError ? (
-                    <div className={`relative w-full max-w-sm ${orientation === 'PORTRAIT' ? 'aspect-[3/4] max-w-[240px]' : 'aspect-video'} rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900`}>
+                {value ? (
+                    <div className="relative w-full max-w-sm p-4 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center gap-3">
                         <div className="absolute top-2 right-2 z-10">
                             <Button
                                 type="button"
                                 onClick={onRemove}
                                 variant="destructive"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-6 w-6"
                             >
-                                <X className="h-4 w-4" />
+                                <X className="h-3 w-3" />
                             </Button>
                         </div>
-                        {/* Use standard img tag for potentially external URLs to avoid Next.js domain config issues */}
-                        <img
-                            className="w-full h-full object-contain"
-                            alt="Image"
-                            src={value}
-                            onError={() => {
-                                setImageError(true);
-                                toast.error('Failed to load image from URL. Make sure it is a direct image link.');
-                            }}
-                        />
+                        <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
+                            <FileText className="h-8 w-8 text-red-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">PDF Document</p>
+                            <a
+                                href={value}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline truncate block"
+                            >
+                                View PDF
+                            </a>
+                        </div>
                     </div>
                 ) : (
-                    <div className={`w-full max-w-sm ${orientation === 'PORTRAIT' ? 'aspect-[3/4] max-w-[240px]' : 'aspect-video'} rounded-md border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 text-slate-500 transition-all`}>
-                        {imageError ? (
-                            <div className="flex flex-col items-center text-red-500">
-                                <span className="material-symbols-outlined text-4xl mb-2">broken_image</span>
-                                <span className="text-sm">Invalid Image URL</span>
-                                <Button
-                                    variant="link"
-                                    className="text-red-500 mt-2 h-auto p-0"
-                                    onClick={() => { setImageError(false); onRemove(); }}
-                                >
-                                    Try Another
-                                </Button>
-                            </div>
-                        ) : (
-                            <>
-                                <Upload className="h-10 w-10 mb-2" />
-                                <span className="text-sm">No image selected</span>
-                                <span className="text-xs text-muted-foreground mt-1">Recommended: {orientation === 'PORTRAIT' ? '3:4 Portrait' : '16:9 Landscape'}</span>
-                            </>
-                        )}
+                    <div className="w-full max-w-sm p-8 rounded-md border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 text-slate-500 transition-all">
+                        <FileText className="h-10 w-10 mb-2" />
+                        <span className="text-sm">No PDF selected</span>
                     </div>
                 )}
             </div>
@@ -165,7 +141,7 @@ export const ImageUpload = ({
                         onClick={() => setUploadMode('URL')}
                         className={`text-sm font-medium px-3 py-1.5 border-b-2 transition-colors ${uploadMode === 'URL' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
                     >
-                        Image URL
+                        PDF URL
                     </button>
                 </div>
 
@@ -185,31 +161,28 @@ export const ImageUpload = ({
                             ) : (
                                 <>
                                     <Upload className="h-4 w-4 mr-2" />
-                                    Upload Image
+                                    Upload PDF
                                 </>
                             )}
                             <input
                                 type="file"
                                 disabled={disabled || isUploading}
-                                accept="image/*"
+                                accept="application/pdf"
                                 onChange={onUpload}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                             />
                         </Button>
                         <p className="text-xs text-muted-foreground">
-                            Supported: JPG, PNG, GIF
+                            Supported: PDF only
                         </p>
                     </div>
                 ) : (
                     <div className="flex items-center gap-2">
                         <input
                             type="url"
-                            placeholder="https://example.com/image.jpg"
+                            placeholder="https://example.com/document.pdf"
                             value={urlInput}
-                            onChange={(e) => {
-                                setUrlInput(e.target.value);
-                                if (imageError) setImageError(false);
-                            }}
+                            onChange={(e) => setUrlInput(e.target.value)}
                             onBlur={handleUrlBlur}
                             onKeyDown={handleKeyDown}
                             className="flex-1 h-10 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
@@ -220,7 +193,7 @@ export const ImageUpload = ({
                             onClick={handleUrlSubmit}
                             variant="secondary"
                         >
-                            Preview
+                            Set URL
                         </Button>
                     </div>
                 )}

@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -8,23 +6,23 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
   fullName      String    @map("full_name")
-  studentId     String?   @map("student_id")
-  avatar        String?
+  email         String    @unique
+  password      String?
   role          Role      @default(MEMBER)
+  avatar        String?
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-  
+
   blogPosts     BlogPost[]
   comments      Comment[]
-  teamMembers   TeamMember[]
-  
+  likes         Like[]
+
   @@map("users")
 }
 
@@ -36,25 +34,25 @@ enum Role {
 }
 
 model BlogPost {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   title         String
-  slug          String    @unique
-  excerpt       String?   @db.Text
-  content       String    @db.Text
-  featuredImage String?   @map("featured_image")
+  slug          String     @unique
+  excerpt       String?    @db.Text
+  content       String     @db.Text
+  featuredImage String?    @map("featured_image")
   category      String
   orientation   String     @default("LANDSCAPE") // "LANDSCAPE" or "PORTRAIT"
   status        PostStatus @default(DRAFT)
-  authorId      String    @map("author_id")
-  publishedAt   DateTime? @map("published_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  
-  author        User      @relation(fields: [authorId], references: [id])
+  authorId      String     @map("author_id")
+  publishedAt   DateTime?  @map("published_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  author        User       @relation(fields: [authorId], references: [id])
   comments      Comment[]
   likes         Like[]
   tags          Tag[]
-  
+
   @@map("blog_posts")
 }
 
@@ -65,128 +63,103 @@ enum PostStatus {
 }
 
 model Comment {
-  id            String    @id @default(cuid())
-  content       String    @db.Text
-  authorId      String    @map("author_id")
-  postId        String    @map("post_id")
-  parentId      String?   @map("parent_id")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  
-  author        User      @relation(fields: [authorId], references: [id])
-  post          BlogPost  @relation(fields: [postId], references: [id])
-  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies       Comment[] @relation("CommentReplies")
-  likes         Like[]
-  
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  postId    String   @map("post_id")
+  authorId  String   @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
   @@map("comments")
 }
 
 model Like {
   id        String   @id @default(cuid())
+  postId    String   @map("post_id")
   userId    String   @map("user_id")
-  postId    String?  @map("post_id")
-  commentId String?  @map("comment_id")
   createdAt DateTime @default(now()) @map("created_at")
-  
-  post      BlogPost? @relation(fields: [postId], references: [id])
-  comment   Comment?  @relation(fields: [commentId], references: [id])
-  
-  @@unique([userId, postId])
-  @@unique([userId, commentId])
+
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
   @@map("likes")
 }
 
 model Tag {
   id        String     @id @default(cuid())
   name      String     @unique
-  slug      String     @unique
-  createdAt DateTime   @default(now()) @map("created_at")
-  
   posts     BlogPost[]
-  
+
   @@map("tags")
 }
 
 model Team {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
-  slug        String    @unique
-  description String?   @db.Text
-  icon        String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
+  slug        String       @unique
+  description String?      @db.Text
+  image       String?
   members     TeamMember[]
-  
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
   @@map("teams")
 }
 
 model TeamMember {
-  id          String    @id @default(cuid())
-  userId      String    @map("user_id")
-  teamId      String    @map("team_id")
-  position    String
-  role        String?   // e.g., "President", "Coordinator", "Lead"
-  bio         String?   @db.Text
-  linkedin    String?
-  twitter     String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
-  user        User      @relation(fields: [userId], references: [id])
-  team        Team      @relation(fields: [teamId], references: [id])
-  
-  @@unique([userId, teamId])
+  id        String   @id @default(cuid())
+  fullName  String   @map("full_name")
+  role      String
+  bio       String?  @db.Text
+  image     String?
+  teamId    String   @map("team_id")
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
   @@map("team_members")
 }
 
 model Conference {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
-  slug        String    @unique
-  description String?   @db.Text
-  theme       String?
-  image       String?
-  startDate   DateTime  @map("start_date")
-  endDate     DateTime  @map("end_date")
+  description String   @db.Text
+  date        DateTime
   location    String?
-  status      ConferenceStatus @default(UPCOMING)
-  registrationOpen Boolean @default(false) @map("registration_open")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
+  image       String?
+  status      String   @default("UPCOMING") // UPCOMING, ONGOING, COMPLETED
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
   @@map("conferences")
 }
 
-enum ConferenceStatus {
-  UPCOMING
-  ONGOING
-  COMPLETED
-  CANCELLED
-}
-
 model Project {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
-  slug        String    @unique
-  description String?   @db.Text
+  description String   @db.Text
   image       String?
-  teamId      String?   @map("team_id")
-  status      String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
+  status      String   @default("ACTIVE") // ACTIVE, COMPLETED, PLANNED
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
   @@map("projects")
 }
 
 model GalleryImage {
-  id          String    @id @default(cuid())
-  title       String?
+  id          String   @id @default(cuid())
   url         String
-  alt         String?
-  category    String?
-  createdAt   DateTime  @default(now()) @map("created_at")
+  caption     String?
+  width       Int      @default(800)
+  height      Int      @default(600)
+  category    String?  // e.g., "Event", "Workshop"
+  createdAt   DateTime @default(now()) @map("created_at")
   
   @@map("gallery_images")
 }
@@ -202,4 +175,18 @@ model HeroPost {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("hero_posts")
+}
+
+model Magazine {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  coverImage  String?   @map("cover_image")
+  embedCode   String    @map("embed_code") @db.Text
+  pdfUrl      String?   @map("pdf_url")
+  publishedAt DateTime  @default(now()) @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("magazines")
 }
