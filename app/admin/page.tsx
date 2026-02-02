@@ -49,6 +49,18 @@ export default function AdminDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [heroPosts, setHeroPosts] = useState<HeroPost[]>([]);
+
+  // Delete Confirmation State
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    type: 'post' | 'hero' | null;
+    id: string | null;
+  }>({
+    isOpen: false,
+    type: null,
+    id: null,
+  });
+
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showHeroModal, setShowHeroModal] = useState(false);
@@ -214,7 +226,12 @@ export default function AdminDashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    setDeleteConfirmation({ isOpen: true, type: 'post', id });
+  };
+
+  const confirmDeletePost = async () => {
+    const id = deleteConfirmation.id;
+    if (!id) return;
 
     const loadingToast = toast.loading('Deleting post...');
 
@@ -232,11 +249,19 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error deleting post:', error);
       toast.error('Error deleting post', { id: loadingToast });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, type: null, id: null });
     }
   };
 
   const handleDeleteHero = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    setDeleteConfirmation({ isOpen: true, type: 'hero', id });
+  };
+
+  const confirmDeleteHero = async () => {
+    const id = deleteConfirmation.id;
+    if (!id) return;
+
     const loadingToast = toast.loading('Deleting announcement...');
 
     try {
@@ -253,6 +278,8 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error deleting hero post:', error);
       toast.error('Error deleting announcement', { id: loadingToast });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, type: null, id: null });
     }
   };
 
